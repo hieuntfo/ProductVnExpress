@@ -21,6 +21,19 @@ const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
 
+  // Form state for New Project
+  const [newProject, setNewProject] = useState<Partial<Project>>({
+    year: 2026,
+    type: ProjectType.NEW,
+    status: ProjectStatus.PLANNING,
+    phase: 'Khởi tạo',
+    quarter: 1,
+    department: DEPARTMENTS[0],
+    pm: TEAM_MEMBERS[0],
+    po: TEAM_MEMBERS[1],
+    designer: TEAM_MEMBERS[2]
+  });
+
   const normalizeStatus = (statusStr: string): ProjectStatus => {
     const s = (statusStr || '').trim();
     const map: Record<string, ProjectStatus> = {
@@ -42,7 +55,6 @@ const App: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch Project Plan & Report data concurrently
         const [planRes, reportRes] = await Promise.all([
           fetch(`${PLAN_URL}&t=${Date.now()}`),
           fetch(`${REPORT_URL}&t=${Date.now()}`)
@@ -51,9 +63,8 @@ const App: React.FC = () => {
         const planTsv = await planRes.text();
         const planRows = planTsv.split('\n').map(row => row.split('\t'));
         
-        // Cần show đủ với các trường dữ liệu có data tại trường "Issue Description" (index 1)
         const parsedProjects: Project[] = planRows.slice(1)
-          .filter(r => r.length > 2 && r[1] && r[1].trim() !== '') // Lọc theo Issue Description
+          .filter(r => r.length > 2 && r[1] && r[1].trim() !== '')
           .map((row, idx) => {
             const code = (row[0] || '').trim();
             const desc = (row[1] || '').trim();
@@ -61,11 +72,7 @@ const App: React.FC = () => {
             const hoDate = (row[7] || '').trim();
             
             let year = 2026;
-            if (code.toLowerCase().includes('2025') || 
-                relDate.includes('2025') || 
-                hoDate.includes('2025') || 
-                relDate.endsWith('/25') || 
-                hoDate.endsWith('/25')) {
+            if (code.toLowerCase().includes('2025') || relDate.includes('2025') || hoDate.includes('2025') || relDate.endsWith('/25') || hoDate.endsWith('/25')) {
               year = 2025;
             }
 
@@ -111,7 +118,7 @@ const App: React.FC = () => {
         setProjects(parsedProjects.length > 0 ? parsedProjects : MOCK_PROJECTS);
         setReports(parsedReports);
       } catch (error) {
-        console.error("Error fetching data from Google Sheets:", error);
+        console.error("Error fetching data:", error);
         setProjects(MOCK_PROJECTS);
       } finally {
         setIsLoading(false);
@@ -127,6 +134,19 @@ const App: React.FC = () => {
       p.code.toLowerCase().includes(searchQuery.toLowerCase())
     ));
   }, [projects, selectedYear, searchQuery]);
+
+  const handleAddProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    const projectToAdd: Project = {
+      ...newProject,
+      id: `local-${Math.random().toString(36).substr(2, 9)}`,
+      year: selectedYear,
+    } as Project;
+
+    setProjects(prev => [projectToAdd, ...prev]);
+    setIsAddingProject(false);
+    alert(`Dự án ${projectToAdd.code} đã được thêm vào hệ thống ${selectedYear}!`);
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex">
@@ -158,17 +178,9 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex flex-col items-end mr-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Trạng thái kết nối</span>
-              <span className="text-xs font-black text-emerald-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                LIVE SYNC
-              </span>
-            </div>
             <button 
               onClick={() => window.location.reload()}
-              className="p-3 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#9f224e] hover:border-[#9f224e] transition-all shadow-sm active:scale-90"
-              title="Làm mới dữ liệu từ Sheet"
+              className="p-3 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#9f224e] transition-all shadow-sm active:scale-90"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
@@ -181,11 +193,8 @@ const App: React.FC = () => {
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-[60vh]">
-            <div className="relative">
-               <div className="w-16 h-16 border-4 border-slate-100 border-t-[#9f224e] rounded-full animate-spin"></div>
-               <div className="absolute inset-0 flex items-center justify-center font-black text-[#9f224e] text-xs">VNE</div>
-            </div>
-            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Đang đồng bộ dữ liệu tòa soạn...</p>
+            <div className="w-12 h-12 border-4 border-slate-100 border-t-[#9f224e] rounded-full animate-spin"></div>
+            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Đang nạp dữ liệu...</p>
           </div>
         ) : (
           <div className="animate-fade-in">
@@ -206,27 +215,123 @@ const App: React.FC = () => {
               </div>
             )}
             {activeView === 'team' && <MemberHub projects={projects.filter(p => p.year === selectedYear)} />}
-            {activeView === 'backlog' && (
-              <div className="flex flex-col items-center justify-center py-32 bg-white rounded-3xl border border-dashed border-slate-300">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                  <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <h3 className="text-xl font-black text-slate-800">Backlog Dự Kiến</h3>
-                <p className="text-slate-400 text-sm mt-2">Dữ liệu đang được ánh xạ từ sheet BACKLOG của tòa soạn.</p>
-              </div>
-            )}
+            {activeView === 'backlog' && <div className="p-20 text-center font-bold text-slate-300 uppercase tracking-widest">Backlog Coming Soon</div>}
           </div>
         )}
       </main>
 
       <AIAssistant projects={projects.filter(p => p.year === selectedYear)} />
 
+      {/* Lightbox: Thêm dự án mới */}
+      {isAddingProject && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-bold text-slate-900">Khởi tạo dự án mới {selectedYear}</h2>
+              <button onClick={() => setIsAddingProject(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleAddProject} className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-5">
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Mã dự án</label>
+                  <input required type="text" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Vd: VNE_2026_001" onChange={e => setNewProject({...newProject, code: e.target.value})} />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Loại hình</label>
+                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm" onChange={e => setNewProject({...newProject, type: e.target.value as ProjectType})}>
+                    {Object.values(ProjectType).map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tên dự án (Issue Description)</label>
+                  <input required type="text" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Nhập tên dự án..." onChange={e => setNewProject({...newProject, description: e.target.value})} />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Chuyên mục</label>
+                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm" onChange={e => setNewProject({...newProject, department: e.target.value})}>
+                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">PM Phụ trách</label>
+                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm" onChange={e => setNewProject({...newProject, pm: e.target.value})}>
+                    {TEAM_MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-6 border-t">
+                <button type="button" onClick={() => setIsAddingProject(false)} className="px-6 py-2.5 font-bold text-slate-500 hover:text-slate-700">Hủy</button>
+                <button type="submit" className="px-8 py-2.5 bg-[#9f224e] text-white rounded-xl font-bold shadow-lg">Lưu dự án</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox: Chi tiết dự án */}
+      {selectedProject && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-scale-in">
+            <div className="p-6 border-b flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black text-[#9f224e] uppercase tracking-widest">Chi tiết dự án</span>
+                <h2 className="text-xl font-bold text-slate-900 mt-1">{selectedProject.description}</h2>
+              </div>
+              <button onClick={() => setSelectedProject(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Mã dự án</p>
+                    <p className="font-mono text-sm font-bold">{selectedProject.code}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Trạng thái</p>
+                    <p className="text-sm font-bold text-[#9f224e]">{selectedProject.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">KPI Cam kết</p>
+                    <p className="text-sm font-bold">{selectedProject.kpi || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Nhân sự Lead</p>
+                    <p className="text-sm font-bold">PM: {selectedProject.pm} | PO: {selectedProject.po}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Lộ trình (Rel)</p>
+                    <p className="text-sm font-bold text-emerald-600">{selectedProject.releaseDate || 'TBA'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Ghi chú</p>
+                    <p className="text-xs text-slate-500 italic">"{selectedProject.notes || 'Không có ghi chú.'}"</p>
+                  </div>
+                </div>
+              </div>
+              {selectedProject.dashboardUrl && (
+                <div className="pt-4 border-t">
+                  <a href={selectedProject.dashboardUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-all">
+                    Mở Dashboard Theo Dõi
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+        .animate-scale-in { animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
       `}</style>
     </div>
   );
