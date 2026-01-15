@@ -52,9 +52,15 @@ export interface BacklogItem {
   description: string;
   type: string;
   department: string;
-  priority: string;
   status: string;
+  priority: string;
+  quarter: string;
+  pm: string;
+  designer: string;
+  po: string;
   notes: string;
+  techHandoff?: string;
+  releaseDate?: string;
 }
 
 export enum UserRole {

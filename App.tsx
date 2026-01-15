@@ -119,15 +119,21 @@ const App: React.FC = () => {
         const backlogTsv = await backlogRes.text();
         const backlogRows = backlogTsv.split('\n').map(row => row.split('\t'));
         const parsedBacklog: BacklogItem[] = backlogRows.slice(1)
-          .filter(r => r.length > 1 && r[1] && r[1].trim() !== '')
+          .filter(r => r.length > 1 && r[1] && r[1].trim() !== '') // Lọc những dòng có Issue Description
           .map((row, idx) => ({
             id: `bl-${idx}`,
             code: (row[0] || '').trim(),
             description: (row[1] || '').trim(),
             type: (row[2] || '').trim(),
             department: (row[3] || '').trim(),
-            priority: (row[4] || 'Low').trim(),
-            status: (row[5] || 'Pending').trim(),
+            status: (row[4] || 'Pending').trim(),
+            priority: (row[5] || 'Medium').trim(), // Thường cột phase/priority ở index 5
+            quarter: (row[6] || '').trim(),
+            techHandoff: (row[7] || '').trim(),
+            releaseDate: (row[8] || '').trim(),
+            pm: (row[9] || '').trim(),
+            designer: (row[10] || '').trim(),
+            po: (row[11] || '').trim(),
             notes: (row[14] || '').trim()
           }));
 
@@ -151,6 +157,13 @@ const App: React.FC = () => {
       p.code.toLowerCase().includes(searchQuery.toLowerCase())
     ));
   }, [projects, selectedYear, searchQuery]);
+
+  const filteredBacklog = useMemo(() => {
+    return backlogItems.filter(item => 
+      item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.code.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [backlogItems, searchQuery]);
 
   const handleAddProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,17 +225,29 @@ const App: React.FC = () => {
         ) : (
           <div className="animate-fade-in">
             {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} reports={reports.filter(r => r.year === selectedYear)} />}
-            {activeView === 'projects' && (
+            
+            {(activeView === 'projects' || activeView === 'backlog') && (
               <div className="space-y-6">
                  <div className="relative max-w-md">
-                    <input type="text" placeholder="Tìm dự án..." className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none shadow-sm" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    <input 
+                      type="text" 
+                      placeholder={`Tìm ${activeView === 'backlog' ? 'backlog' : 'dự án'}...`} 
+                      className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none shadow-sm focus:ring-2 focus:ring-[#9f224e]/20" 
+                      value={searchQuery} 
+                      onChange={(e) => setSearchQuery(e.target.value)} 
+                    />
                     <svg className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                  </div>
-                 <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
+                 
+                 {activeView === 'projects' ? (
+                   <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
+                 ) : (
+                   <BacklogList items={filteredBacklog} />
+                 )}
               </div>
             )}
+            
             {activeView === 'team' && <MemberHub projects={projects.filter(p => p.year === selectedYear)} />}
-            {activeView === 'backlog' && <BacklogList items={backlogItems} />}
           </div>
         )}
       </main>
