@@ -46,6 +46,17 @@ export interface ReportItem {
   year: number;
 }
 
+export interface BacklogItem {
+  id: string;
+  code: string;
+  description: string;
+  type: string;
+  department: string;
+  priority: string;
+  status: string;
+  notes: string;
+}
+
 export enum UserRole {
   MEMBER = 'Member',
   EDITOR = 'Editor',
