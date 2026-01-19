@@ -14,8 +14,8 @@ export enum ProjectStatus {
 
 export enum ProjectType {
   STRATEGIC = 'Chiến lược',
-  ANNUAL = 'Thường niên',
-  NEW = 'Mới'
+  ANNUAL = 'Thường niên', // ANN
+  NEW = 'Mới' // NEW
 }
 
 export interface Project {
@@ -36,14 +36,6 @@ export interface Project {
   kpi: string;
   dashboardUrl?: string;
   notes?: string;
-}
-
-export interface ReportItem {
-  type: 'ANN' | 'NEW';
-  designer: string;
-  projectName: string;
-  status: string;
-  year: number;
 }
 
 export interface BacklogItem {

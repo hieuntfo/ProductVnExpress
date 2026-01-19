@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { DEPARTMENTS, TEAM_MEMBERS, MOCK_PROJECTS } from './constants';
-import { Project, ProjectStatus, ProjectType, ReportItem, BacklogItem } from './types';
+import { Project, ProjectStatus, ProjectType, BacklogItem } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ProjectTable from './components/ProjectTable';
@@ -9,15 +9,12 @@ import AIAssistant from './components/AIAssistant';
 import MemberHub from './components/MemberHub';
 import BacklogList from './components/BacklogList';
 
-const PLAN_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?output=tsv";
-const REPORT_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?gid=55703458&single=true&output=tsv";
-const BACKLOG_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?gid=0&single=true&output=tsv";
+const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?output=tsv";
 
 const REFRESH_INTERVAL = 120000; // 2 minutes auto-refresh
 
 // Cache keys
 const CACHE_KEY_PROJECTS = 'vne_pms_projects';
-const CACHE_KEY_REPORTS = 'vne_pms_reports';
 const CACHE_KEY_BACKLOG = 'vne_pms_backlog';
 const CACHE_KEY_LAST_UPDATED = 'vne_pms_last_updated';
 
@@ -25,7 +22,6 @@ const App: React.FC = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'backlog' | 'team'>('dashboard');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [reports, setReports] = useState<ReportItem[]>([]);
   const [backlogItems, setBacklogItems] = useState<BacklogItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -69,6 +65,13 @@ const App: React.FC = () => {
     return map[s] || ProjectStatus.NOT_STARTED;
   };
 
+  const normalizeType = (typeStr: string): ProjectType => {
+    const t = (typeStr || '').toUpperCase().trim();
+    if (t.includes('ANN') || t.includes('THƯỜNG NIÊN')) return ProjectType.ANNUAL;
+    if (t.includes('CHIẾN LƯỢC') || t.includes('STRATEGIC')) return ProjectType.STRATEGIC;
+    return ProjectType.NEW;
+  };
+
   const fetchData = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setIsRefreshing(true);
@@ -77,26 +80,27 @@ const App: React.FC = () => {
       const cacheBuster = `t=${Date.now()}`;
       const fetchOptions = { cache: 'no-store' as RequestCache };
 
-      const [planRes, reportRes, backlogRes] = await Promise.all([
-        fetch(`${PLAN_URL}${PLAN_URL.includes('?') ? '&' : '?'}${cacheBuster}`, fetchOptions),
-        fetch(`${REPORT_URL}${REPORT_URL.includes('?') ? '&' : '?'}${cacheBuster}`, fetchOptions),
-        fetch(`${BACKLOG_URL}${BACKLOG_URL.includes('?') ? '&' : '?'}${cacheBuster}`, fetchOptions)
-      ]);
+      // Fetch data from the main sheet. Assuming Plan and Backlog share the same source or GID 0.
+      const response = await fetch(`${DATA_URL}${DATA_URL.includes('?') ? '&' : '?'}${cacheBuster}`, fetchOptions);
 
-      if (!planRes.ok || !reportRes.ok || !backlogRes.ok) {
+      if (!response.ok) {
         throw new Error("Failed to fetch data from Google Sheets");
       }
 
-      const planTsv = await planRes.text();
-      const planRows = planTsv.split('\n').map(row => row.split('\t'));
-      const parsedProjects: Project[] = planRows.slice(1)
+      const tsvText = await response.text();
+      const rows = tsvText.split('\n').map(row => row.split('\t'));
+
+      // Parse Projects
+      const parsedProjects: Project[] = rows.slice(1)
         .filter(r => r.length > 2 && r[1] && r[1].trim() !== '')
         .map((row, idx) => {
           const code = (row[0] || '').trim();
           const relDate = (row[8] || '').trim();
           const hoDate = (row[7] || '').trim();
+          const typeStr = (row[2] || '').trim();
+          
           let year = 2026;
-          // Logic xác định năm dựa trên Code hoặc Date
+          // Logic xác định năm: Mặc định 2026, nếu có dấu hiệu 2025 thì gán 2025
           if (code.toLowerCase().includes('2025') || relDate.includes('2025') || hoDate.includes('2025') || relDate.endsWith('/25') || hoDate.endsWith('/25')) year = 2025;
           
           return {
@@ -104,7 +108,7 @@ const App: React.FC = () => {
             year,
             code,
             description: (row[1] || '').trim(),
-            type: ((row[2] || '').trim() as ProjectType) || ProjectType.ANNUAL,
+            type: normalizeType(typeStr),
             department: (row[3] || '').trim(),
             status: normalizeStatus(row[4] || ''),
             phase: (row[5] || '').trim(),
@@ -120,30 +124,14 @@ const App: React.FC = () => {
           };
         });
 
-      const reportTsv = await reportRes.text();
-      const reportRows = reportTsv.split('\n').map(row => row.split('\t'));
-      const parsedReports: ReportItem[] = reportRows.slice(1)
-        .filter(r => r.length > 2 && r[2] && r[2].trim() !== '')
-        .map(row => {
-          const projectName = (row[2] || '').trim();
-          return {
-            type: (row[0] || '').toUpperCase().includes('ANN') ? 'ANN' : 'NEW',
-            designer: (row[1] || '').trim(),
-            projectName,
-            status: (row[3] || '').trim(),
-            year: projectName.includes('2025') ? 2025 : 2026
-          };
-        });
-
-      const backlogTsv = await backlogRes.text();
-      const backlogRows = backlogTsv.split('\n').map(row => row.split('\t'));
-      const parsedBacklog: BacklogItem[] = backlogRows.slice(1)
+      // Parse Backlog (Same data, different view/usage)
+      const parsedBacklog: BacklogItem[] = rows.slice(1)
         .filter(r => r.length > 1 && r[1] && r[1].trim() !== '')
         .map((row, idx) => ({
           id: `bl-${idx}`,
           code: (row[0] || '').trim(),
           description: (row[1] || '').trim(),
-          type: (row[2] || '').trim(),
+          type: normalizeType((row[2] || '').trim()), // Use same normalization for display consistency
           department: (row[3] || '').trim(),
           status: (row[4] || 'Pending').trim(),
           priority: (row[5] || 'Medium').trim(),
@@ -158,7 +146,6 @@ const App: React.FC = () => {
 
       // Update state
       setProjects(parsedProjects);
-      setReports(parsedReports);
       setBacklogItems(parsedBacklog);
       
       const now = new Date();
@@ -166,13 +153,11 @@ const App: React.FC = () => {
 
       // Save to Cache
       localStorage.setItem(CACHE_KEY_PROJECTS, JSON.stringify(parsedProjects));
-      localStorage.setItem(CACHE_KEY_REPORTS, JSON.stringify(parsedReports));
       localStorage.setItem(CACHE_KEY_BACKLOG, JSON.stringify(parsedBacklog));
       localStorage.setItem(CACHE_KEY_LAST_UPDATED, now.toISOString());
 
     } catch (error) {
       console.error("Lỗi đồng bộ dữ liệu:", error);
-      // Nếu không có cache và lỗi mạng, mới dùng Mock. Nếu có cache, giữ nguyên cache.
       if (projects.length === 0) {
           const cachedProjects = localStorage.getItem(CACHE_KEY_PROJECTS);
           if (!cachedProjects) {
@@ -185,22 +170,18 @@ const App: React.FC = () => {
     }
   }, [projects.length]);
 
-  // Load from cache on mount immediately
+  // Load from cache on mount
   useEffect(() => {
     const cachedProjects = localStorage.getItem(CACHE_KEY_PROJECTS);
-    const cachedReports = localStorage.getItem(CACHE_KEY_REPORTS);
     const cachedBacklog = localStorage.getItem(CACHE_KEY_BACKLOG);
     const cachedTime = localStorage.getItem(CACHE_KEY_LAST_UPDATED);
 
     if (cachedProjects) setProjects(JSON.parse(cachedProjects));
-    if (cachedReports) setReports(JSON.parse(cachedReports));
     if (cachedBacklog) setBacklogItems(JSON.parse(cachedBacklog));
     if (cachedTime) setLastUpdated(new Date(cachedTime));
 
-    // Then fetch fresh data
     fetchData();
 
-    // Setup auto-refresh
     const timer = setInterval(() => {
       fetchData(true);
     }, REFRESH_INTERVAL);
@@ -216,6 +197,7 @@ const App: React.FC = () => {
   }, [projects, selectedYear, searchQuery]);
 
   const filteredBacklog = useMemo(() => {
+    // Backlog might not filter by year strictly, but let's apply search
     return backlogItems.filter(item => 
       item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
       item.code.toLowerCase().includes(searchQuery.toLowerCase())
@@ -231,7 +213,7 @@ const App: React.FC = () => {
     } as Project;
     setProjects(prev => [projectToAdd, ...prev]);
     setIsAddingProject(false);
-    alert('Dự án đã được thêm tạm thời. Hãy cập nhật vào Google Sheet để lưu trữ lâu dài.');
+    alert('Dự án đã được thêm tạm thời.');
   };
 
   return (
@@ -248,7 +230,7 @@ const App: React.FC = () => {
               </span>
             </div>
             <h1 className="text-3xl font-black text-[#1a1a1a]">
-              {activeView === 'dashboard' ? 'Báo cáo 2026' : 
+              {activeView === 'dashboard' ? `Báo cáo ${selectedYear}` : 
                activeView === 'projects' ? 'Kế hoạch Sản phẩm' : 
                activeView === 'backlog' ? 'Danh sách Backlog' : 'Member HUB'}
             </h1>
@@ -267,7 +249,7 @@ const App: React.FC = () => {
               {lastUpdated && (
                 <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                    Dữ liệu cập nhật lúc
+                    Cập nhật lúc
                     </span>
                     <span className="text-[11px] font-black text-slate-600">
                     {lastUpdated.toLocaleTimeString('vi-VN')}
@@ -282,7 +264,6 @@ const App: React.FC = () => {
               onClick={() => fetchData()} 
               disabled={isRefreshing}
               className={`p-3 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#9f224e] transition-all shadow-sm active:scale-90 ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title="Làm mới dữ liệu từ Google Sheets"
             >
               <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -297,15 +278,12 @@ const App: React.FC = () => {
 
         {isLoading && projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh]">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-slate-100 border-t-[#9f224e] rounded-full animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center font-black text-[#9f224e] text-[10px]">VNE</div>
-            </div>
-            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Đang tải dữ liệu mới nhất...</p>
+            <div className="w-16 h-16 border-4 border-slate-100 border-t-[#9f224e] rounded-full animate-spin"></div>
+            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Đang tải dữ liệu...</p>
           </div>
         ) : (
           <div className="animate-fade-in">
-            {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} reports={reports.filter(r => r.year === selectedYear)} />}
+            {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} />}
             
             {(activeView === 'projects' || activeView === 'backlog') && (
               <div className="space-y-6">
@@ -348,7 +326,7 @@ const App: React.FC = () => {
             <form onSubmit={handleAddProject} className="p-8 space-y-6">
               <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm font-medium flex items-start gap-3">
                  <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                 <p>Lưu ý: Chức năng này sẽ thêm dự án vào giao diện tạm thời. Để lưu trữ vĩnh viễn, vui lòng thêm dòng mới vào file Google Sheets của bạn. Hệ thống sẽ tự động cập nhật sau ít phút.</p>
+                 <p>Lưu ý: Dự án sẽ được thêm vào bộ nhớ tạm. Để lưu lâu dài, vui lòng cập nhật Google Sheets.</p>
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-1">
@@ -408,12 +386,12 @@ const App: React.FC = () => {
                     <p className="font-mono text-base font-bold text-slate-800">{selectedProject.code}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Trạng thái</p>
-                    <p className="text-base font-black text-[#9f224e]">{selectedProject.status}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Loại dự án</p>
+                    <p className="text-base font-black text-slate-800">{selectedProject.type}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">KPI Mục tiêu</p>
-                    <p className="text-sm font-bold text-slate-700">{selectedProject.kpi || 'Chưa thiết lập'}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Trạng thái</p>
+                    <p className="text-base font-black text-[#9f224e]">{selectedProject.status}</p>
                   </div>
                 </div>
                 <div className="space-y-6">
@@ -433,15 +411,6 @@ const App: React.FC = () => {
               {selectedProject.notes && (
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-sm text-slate-600 leading-relaxed">
                   "{selectedProject.notes}"
-                </div>
-              )}
-
-              {selectedProject.dashboardUrl && (
-                <div className="pt-4 border-t">
-                  <a href={selectedProject.dashboardUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-[#1a1a1a] text-white rounded-2xl text-sm font-black hover:bg-[#333] transition-all shadow-lg shadow-slate-200 transform active:scale-[0.98]">
-                    XEM REAL-TIME DASHBOARD
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                  </a>
                 </div>
               )}
             </div>
