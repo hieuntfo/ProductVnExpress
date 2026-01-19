@@ -1,13 +1,12 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { DEPARTMENTS, TEAM_MEMBERS, MOCK_PROJECTS } from './constants';
-import { Project, ProjectStatus, ProjectType, BacklogItem } from './types';
+import { Project, ProjectStatus, ProjectType } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ProjectTable from './components/ProjectTable';
 import AIAssistant from './components/AIAssistant';
 import MemberHub from './components/MemberHub';
-import BacklogList from './components/BacklogList';
 
 const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?output=tsv";
 
@@ -15,14 +14,12 @@ const REFRESH_INTERVAL = 120000; // 2 minutes auto-refresh
 
 // Cache keys
 const CACHE_KEY_PROJECTS = 'vne_pms_projects';
-const CACHE_KEY_BACKLOG = 'vne_pms_backlog';
 const CACHE_KEY_LAST_UPDATED = 'vne_pms_last_updated';
 
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'backlog' | 'team'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'team'>('dashboard');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [backlogItems, setBacklogItems] = useState<BacklogItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -34,7 +31,7 @@ const App: React.FC = () => {
     year: 2026,
     type: ProjectType.NEW,
     status: ProjectStatus.PLANNING,
-    phase: 'Khởi tạo',
+    phase: 'Initialization',
     quarter: 1,
     department: DEPARTMENTS[0],
     pm: TEAM_MEMBERS[0],
@@ -62,7 +59,8 @@ const App: React.FC = () => {
       'Hand-Off': ProjectStatus.HAND_OFF,
       'Planning': ProjectStatus.PLANNING,
     };
-    return map[s] || ProjectStatus.NOT_STARTED;
+    // Default fallback if status is empty but row exists
+    return map[s] || (s ? ProjectStatus.PLANNING : ProjectStatus.NOT_STARTED);
   };
 
   const normalizeType = (typeStr: string): ProjectType => {
@@ -70,6 +68,15 @@ const App: React.FC = () => {
     if (t.includes('ANN') || t.includes('THƯỜNG NIÊN')) return ProjectType.ANNUAL;
     if (t.includes('CHIẾN LƯỢC') || t.includes('STRATEGIC')) return ProjectType.STRATEGIC;
     return ProjectType.NEW;
+  };
+
+  const parseQuarter = (qStr: string): number => {
+    const q = (qStr || '').toUpperCase();
+    if (q.includes('Q1')) return 1;
+    if (q.includes('Q2')) return 2;
+    if (q.includes('Q3')) return 3;
+    if (q.includes('Q4')) return 4;
+    return 1;
   };
 
   const fetchData = useCallback(async (isSilent = false) => {
@@ -80,7 +87,6 @@ const App: React.FC = () => {
       const cacheBuster = `t=${Date.now()}`;
       const fetchOptions = { cache: 'no-store' as RequestCache };
 
-      // Fetch data from the main sheet. Assuming Plan and Backlog share the same source or GID 0.
       const response = await fetch(`${DATA_URL}${DATA_URL.includes('?') ? '&' : '?'}${cacheBuster}`, fetchOptions);
 
       if (!response.ok) {
@@ -90,74 +96,82 @@ const App: React.FC = () => {
       const tsvText = await response.text();
       const rows = tsvText.split('\n').map(row => row.split('\t'));
 
-      // Parse Projects
-      const parsedProjects: Project[] = rows.slice(1)
-        .filter(r => r.length > 2 && r[1] && r[1].trim() !== '')
+      // Skip the first 2 rows (Header rows) and map data
+      // Col Mapping based on screenshot:
+      // A[0]: No (Index)
+      // B[1]: Type
+      // C[2]: Description
+      // D[3]: Phase
+      // E[4]: Folder (Dept)
+      // F[5]: Request (PO)
+      // G[6]: Tech Hand-off
+      // I[8]: Release Date
+      // K[10]: Quarter
+      // L[11]: Product (PM)
+      // M[12]: UX/UI (Designer)
+      // N[13]: Status
+
+      const parsedProjects: Project[] = rows.slice(2)
+        .filter(r => {
+           // Filter: Must have a numeric index in Col A (to exclude category rows like the dark green ones or empty rows)
+           // And must have a description
+           const hasIndex = /^\d+$/.test((r[0] || '').trim());
+           const hasDesc = r[2] && r[2].trim() !== '';
+           return hasIndex && hasDesc;
+        })
         .map((row, idx) => {
-          const code = (row[0] || '').trim();
-          const relDate = (row[8] || '').trim();
-          const hoDate = (row[7] || '').trim();
-          const typeStr = (row[2] || '').trim();
+          const indexNum = (row[0] || '').trim();
+          const typeStr = (row[1] || '').trim();
+          const description = (row[2] || '').trim();
+          const phase = (row[3] || '').trim();
+          const department = (row[4] || '').trim();
+          const requestOwner = (row[5] || '').trim(); // Mapping "Request" to PO/Requester
+          const techHandoff = (row[6] || '').trim();
+          const releaseDate = (row[8] || '').trim();
+          const quarterStr = (row[10] || '').trim();
+          const pm = (row[11] || '').trim();
+          const designer = (row[12] || '').trim();
+          const statusStr = (row[13] || '').trim();
           
           let year = 2026;
-          // Logic xác định năm: Mặc định 2026, nếu có dấu hiệu 2025 thì gán 2025
-          if (code.toLowerCase().includes('2025') || relDate.includes('2025') || hoDate.includes('2025') || relDate.endsWith('/25') || hoDate.endsWith('/25')) year = 2025;
+          // Determine year based on date strings or quarter
+          if (releaseDate.includes('2025') || releaseDate.endsWith('/25') || 
+              techHandoff.includes('2025') || techHandoff.endsWith('/25') ||
+              quarterStr.startsWith('25')) {
+            year = 2025;
+          }
           
           return {
-            id: `p-${idx}`,
+            id: `p-${indexNum}-${idx}`,
+            code: indexNum, // Using 'No' as code/id reference
             year,
-            code,
-            description: (row[1] || '').trim(),
+            description,
             type: normalizeType(typeStr),
-            department: (row[3] || '').trim(),
-            status: normalizeStatus(row[4] || ''),
-            phase: (row[5] || '').trim(),
-            quarter: parseInt(row[6]) || 1,
-            techHandoff: hoDate,
-            releaseDate: relDate,
-            pm: (row[9] || '').trim(),
-            designer: (row[10] || '').trim(),
-            po: (row[11] || '').trim(),
-            kpi: (row[12] || '').trim(),
-            dashboardUrl: (row[13] || '').trim(),
-            notes: (row[14] || '').trim()
+            department,
+            status: normalizeStatus(statusStr),
+            phase,
+            quarter: parseQuarter(quarterStr),
+            techHandoff,
+            releaseDate,
+            pm,
+            designer,
+            po: requestOwner,
+            kpi: '', // Not in sheet
+            dashboardUrl: '', // Not in sheet
+            notes: '' // Not in sheet
           };
         });
 
-      // Parse Backlog (Same data, different view/usage)
-      const parsedBacklog: BacklogItem[] = rows.slice(1)
-        .filter(r => r.length > 1 && r[1] && r[1].trim() !== '')
-        .map((row, idx) => ({
-          id: `bl-${idx}`,
-          code: (row[0] || '').trim(),
-          description: (row[1] || '').trim(),
-          type: normalizeType((row[2] || '').trim()), // Use same normalization for display consistency
-          department: (row[3] || '').trim(),
-          status: (row[4] || 'Pending').trim(),
-          priority: (row[5] || 'Medium').trim(),
-          quarter: (row[6] || '').trim(),
-          techHandoff: (row[7] || '').trim(),
-          releaseDate: (row[8] || '').trim(),
-          pm: (row[9] || '').trim(),
-          designer: (row[10] || '').trim(),
-          po: (row[11] || '').trim(),
-          notes: (row[14] || '').trim()
-        }));
-
-      // Update state
       setProjects(parsedProjects);
-      setBacklogItems(parsedBacklog);
       
       const now = new Date();
       setLastUpdated(now);
 
-      // Save to Cache
       localStorage.setItem(CACHE_KEY_PROJECTS, JSON.stringify(parsedProjects));
-      localStorage.setItem(CACHE_KEY_BACKLOG, JSON.stringify(parsedBacklog));
       localStorage.setItem(CACHE_KEY_LAST_UPDATED, now.toISOString());
 
     } catch (error) {
-      console.error("Lỗi đồng bộ dữ liệu:", error);
+      console.error("Data sync error:", error);
       if (projects.length === 0) {
           const cachedProjects = localStorage.getItem(CACHE_KEY_PROJECTS);
           if (!cachedProjects) {
@@ -170,14 +184,11 @@ const App: React.FC = () => {
     }
   }, [projects.length]);
 
-  // Load from cache on mount
   useEffect(() => {
     const cachedProjects = localStorage.getItem(CACHE_KEY_PROJECTS);
-    const cachedBacklog = localStorage.getItem(CACHE_KEY_BACKLOG);
     const cachedTime = localStorage.getItem(CACHE_KEY_LAST_UPDATED);
 
     if (cachedProjects) setProjects(JSON.parse(cachedProjects));
-    if (cachedBacklog) setBacklogItems(JSON.parse(cachedBacklog));
     if (cachedTime) setLastUpdated(new Date(cachedTime));
 
     fetchData();
@@ -192,17 +203,11 @@ const App: React.FC = () => {
   const filteredProjects = useMemo(() => {
     return projects.filter(p => p.year === selectedYear && (
       p.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.code.toLowerCase().includes(searchQuery.toLowerCase())
+      p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.pm.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.designer.toLowerCase().includes(searchQuery.toLowerCase())
     ));
   }, [projects, selectedYear, searchQuery]);
-
-  const filteredBacklog = useMemo(() => {
-    // Backlog might not filter by year strictly, but let's apply search
-    return backlogItems.filter(item => 
-      item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      item.code.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [backlogItems, searchQuery]);
 
   const handleAddProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,7 +218,7 @@ const App: React.FC = () => {
     } as Project;
     setProjects(prev => [projectToAdd, ...prev]);
     setIsAddingProject(false);
-    alert('Dự án đã được thêm tạm thời.');
+    alert('Project added temporarily. Please update Google Sheets to save permanently.');
   };
 
   return (
@@ -226,13 +231,12 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 mb-1">
               <span className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-amber-400 animate-ping' : 'bg-[#9f224e]'}`}></span>
               <span className="text-[10px] font-black uppercase text-[#9f224e] tracking-[0.2em]">
-                {isRefreshing ? 'Đang đồng bộ Sheet...' : 'Hệ thống VnExpress P&T'}
+                {isRefreshing ? 'Syncing Sheet...' : 'VnExpress P&T System'}
               </span>
             </div>
             <h1 className="text-3xl font-black text-[#1a1a1a]">
-              {activeView === 'dashboard' ? `Báo cáo ${selectedYear}` : 
-               activeView === 'projects' ? 'Kế hoạch Sản phẩm' : 
-               activeView === 'backlog' ? 'Danh sách Backlog' : 'Member HUB'}
+              {activeView === 'dashboard' ? `Report ${selectedYear}` : 
+               activeView === 'projects' ? 'Product Plan' : 'Member Hub'}
             </h1>
             <div className="flex items-center gap-4 mt-4">
               <div className="flex bg-slate-200 p-1 rounded-xl inline-flex">
@@ -249,10 +253,10 @@ const App: React.FC = () => {
               {lastUpdated && (
                 <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                    Cập nhật lúc
+                    Last updated
                     </span>
                     <span className="text-[11px] font-black text-slate-600">
-                    {lastUpdated.toLocaleTimeString('vi-VN')}
+                    {lastUpdated.toLocaleTimeString('en-US')}
                     </span>
                 </div>
               )}
@@ -264,6 +268,7 @@ const App: React.FC = () => {
               onClick={() => fetchData()} 
               disabled={isRefreshing}
               className={`p-3 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#9f224e] transition-all shadow-sm active:scale-90 ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Refresh Data"
             >
               <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -271,7 +276,7 @@ const App: React.FC = () => {
             </button>
             <button onClick={() => setIsAddingProject(true)} className="bg-[#9f224e] text-white px-6 py-3 rounded-xl font-black text-sm shadow-xl flex items-center gap-2 hover:bg-[#851a40] transition-all transform active:scale-95">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-              DỰ ÁN MỚI
+              NEW PROJECT
             </button>
           </div>
         </header>
@@ -279,18 +284,18 @@ const App: React.FC = () => {
         {isLoading && projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh]">
             <div className="w-16 h-16 border-4 border-slate-100 border-t-[#9f224e] rounded-full animate-spin"></div>
-            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Đang tải dữ liệu...</p>
+            <p className="text-slate-400 font-black mt-6 text-[11px] uppercase tracking-[0.3em] animate-pulse">Fetching from Sheet...</p>
           </div>
         ) : (
           <div className="animate-fade-in">
             {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} />}
             
-            {(activeView === 'projects' || activeView === 'backlog') && (
+            {(activeView === 'projects') && (
               <div className="space-y-6">
                  <div className="relative max-w-md">
                     <input 
                       type="text" 
-                      placeholder={`Tìm ${activeView === 'backlog' ? 'backlog' : 'dự án'}...`} 
+                      placeholder="Search projects..." 
                       className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none shadow-sm focus:ring-2 focus:ring-[#9f224e]/20 transition-all" 
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)} 
@@ -298,11 +303,7 @@ const App: React.FC = () => {
                     <svg className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                  </div>
                  
-                 {activeView === 'projects' ? (
-                   <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
-                 ) : (
-                   <BacklogList items={filteredBacklog} />
-                 )}
+                 <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
               </div>
             )}
             
@@ -313,12 +314,12 @@ const App: React.FC = () => {
 
       <AIAssistant projects={projects.filter(p => p.year === selectedYear)} />
 
-      {/* MODAL: TẠO DỰ ÁN */}
+      {/* MODAL: ADD PROJECT */}
       {isAddingProject && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="p-8 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-              <h2 className="text-2xl font-black text-slate-900">Khởi tạo dự án {selectedYear}</h2>
+              <h2 className="text-2xl font-black text-slate-900">Initialize Project {selectedYear}</h2>
               <button onClick={() => setIsAddingProject(false)} className="p-2 hover:bg-slate-100 rounded-full transition-all">
                 <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -326,46 +327,46 @@ const App: React.FC = () => {
             <form onSubmit={handleAddProject} className="p-8 space-y-6">
               <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm font-medium flex items-start gap-3">
                  <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                 <p>Lưu ý: Dự án sẽ được thêm vào bộ nhớ tạm. Để lưu lâu dài, vui lòng cập nhật Google Sheets.</p>
+                 <p>Note: This will add the project temporarily. To save permanently, please update Google Sheets.</p>
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-1">
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Mã dự án (Code)</label>
-                  <input required type="text" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" placeholder="Vd: VNE2026_01" onChange={e => setNewProject({...newProject, code: e.target.value})} />
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Project No.</label>
+                  <input required type="text" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" placeholder="Ex: 5" onChange={e => setNewProject({...newProject, code: e.target.value})} />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Loại hình</label>
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Type</label>
                   <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" onChange={e => setNewProject({...newProject, type: e.target.value as ProjectType})}>
                     {Object.values(ProjectType).map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Mô tả dự án</label>
-                  <input required type="text" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" placeholder="Nhập tên dự án chi tiết..." onChange={e => setNewProject({...newProject, description: e.target.value})} />
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Description</label>
+                  <input required type="text" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" placeholder="Detailed project name..." onChange={e => setNewProject({...newProject, description: e.target.value})} />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Bộ phận</label>
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Department (Folder)</label>
                   <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" onChange={e => setNewProject({...newProject, department: e.target.value})}>
                     {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">PM Phụ trách</label>
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Product Manager</label>
                   <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" onChange={e => setNewProject({...newProject, pm: e.target.value})}>
                     {TEAM_MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
               </div>
               <div className="flex justify-end gap-4 pt-8 border-t">
-                <button type="button" onClick={() => setIsAddingProject(false)} className="px-6 py-3 font-black text-slate-400 hover:text-slate-600">HỦY BỎ</button>
-                <button type="submit" className="px-10 py-3 bg-[#9f224e] text-white rounded-xl font-black shadow-lg hover:bg-[#851a40] transform active:scale-95 transition-all">THÊM TẠM THỜI</button>
+                <button type="button" onClick={() => setIsAddingProject(false)} className="px-6 py-3 font-black text-slate-400 hover:text-slate-600">CANCEL</button>
+                <button type="submit" className="px-10 py-3 bg-[#9f224e] text-white rounded-xl font-black shadow-lg hover:bg-[#851a40] transform active:scale-95 transition-all">ADD TEMP</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL: CHI TIẾT DỰ ÁN */}
+      {/* MODAL: PROJECT DETAIL */}
       {selectedProject && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl animate-scale-in">
@@ -382,37 +383,36 @@ const App: React.FC = () => {
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Mã dự án</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Project No.</p>
                     <p className="font-mono text-base font-bold text-slate-800">{selectedProject.code}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Loại dự án</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Type</p>
                     <p className="text-base font-black text-slate-800">{selectedProject.type}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Trạng thái</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Status</p>
                     <p className="text-base font-black text-[#9f224e]">{selectedProject.status}</p>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Nhân sự thực hiện</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Personnel</p>
                     <p className="text-sm font-bold text-slate-800">PM: {selectedProject.pm} | PO: {selectedProject.po}</p>
                     <p className="text-xs text-slate-400 mt-1">Designer: {selectedProject.designer}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Lộ trình Release</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Release Timeline</p>
                     <p className="text-sm font-black text-emerald-600">{selectedProject.releaseDate || 'TBA'}</p>
                     <p className="text-xs text-slate-400 mt-1">Tech HO: {selectedProject.techHandoff}</p>
                   </div>
                 </div>
               </div>
               
-              {selectedProject.notes && (
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-sm text-slate-600 leading-relaxed">
-                  "{selectedProject.notes}"
-                </div>
-              )}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed">
+                  <span className="block text-[10px] font-black text-slate-400 uppercase mb-1">Department / Folder</span>
+                  {selectedProject.department}
+              </div>
             </div>
           </div>
         </div>

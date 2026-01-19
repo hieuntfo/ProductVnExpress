@@ -41,55 +41,56 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-bottom border-slate-200">
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mã / Dự án</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Chuyên mục</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">PM / PO</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Trạng thái</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mốc thời gian</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Chi tiết</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest w-16">No.</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project / Description</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Dept / Type</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">PM / Request</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Timeline</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {projects.map((project) => (
               <tr key={project.id} className="hover:bg-slate-50 transition-colors group">
                 <td className="px-6 py-4">
+                  <span className="font-mono text-sm font-bold text-slate-400">#{project.code}</span>
+                </td>
+                <td className="px-6 py-4">
                   <div className="flex flex-col max-w-xs">
-                    <span className="text-[10px] font-mono text-slate-400 font-bold">{project.code}</span>
                     <span className="font-bold text-slate-900 leading-tight truncate" title={project.description}>{project.description}</span>
                     <div className="flex gap-2 mt-1.5 items-center">
                        {getQuarterBadge(project.quarter)}
-                       <span className="text-[10px] text-slate-400 italic font-medium truncate">{project.phase || project.type}</span>
+                       <span className="text-[10px] text-slate-400 italic font-medium truncate">{project.phase}</span>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="text-sm text-slate-600 font-medium">{project.department}</span>
+                   <div className="flex flex-col">
+                      <span className="text-sm text-slate-700 font-bold">{project.department}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold">{project.type}</span>
+                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col text-[12px]">
                     <span className="text-slate-800 font-bold">PM: {project.pm}</span>
-                    <span className="text-slate-400 font-medium">PO: {project.po}</span>
+                    <span className="text-slate-500 text-[10px] truncate max-w-[120px]" title={project.po}>Req: {project.po}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col gap-1.5 items-start">
                     {getStatusBadge(project.status)}
-                    {project.phase && (
-                      <span className="text-[9px] text-slate-500 font-bold uppercase truncate max-w-[100px]" title={project.phase}>
-                        {project.phase}
-                      </span>
-                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col text-[11px] text-slate-500">
                     <span className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                      HO: {project.techHandoff || 'TBA'}
+                      HO: {project.techHandoff || '-'}
                     </span>
                     <span className="font-bold text-[#9f224e] flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#9f224e]"></span>
-                      Rel: {project.releaseDate || 'TBA'}
+                      Rel: {project.releaseDate || '-'}
                     </span>
                   </div>
                 </td>
@@ -108,10 +109,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
             ))}
             {projects.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-20 text-center text-slate-400 italic font-medium">
+                <td colSpan={7} className="px-6 py-20 text-center text-slate-400 italic font-medium">
                   <div className="flex flex-col items-center gap-3">
                     <svg className="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 8-8-8" /></svg>
-                    <span>Không tìm thấy dự án nào phù hợp với bộ lọc cho năm này.</span>
+                    <span>No projects found for the selected year.</span>
                   </div>
                 </td>
               </tr>

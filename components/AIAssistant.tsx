@@ -10,7 +10,7 @@ interface AIAssistantProps {
 const AIAssistant: React.FC<AIAssistantProps> = ({ projects }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
-    { role: 'ai', text: 'Chào Trưởng phòng, tôi là trợ lý ảo VnExpress Product. Tôi có thể giúp gì cho việc quản lý dự án 2026 hôm nay?' }
+    { role: 'ai', text: 'Hello, I am the VnExpress Product Assistant. How can I help you with the 2026 project plan today?' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -52,7 +52,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ projects }) => {
               <div className="w-8 h-8 rounded-full bg-[#9f224e] flex items-center justify-center shadow-lg">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
-              <span className="font-bold tracking-tight">VnExpress AI Trợ Lý</span>
+              <span className="font-bold tracking-tight">VnExpress AI Assistant</span>
             </div>
             <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-[#333] rounded transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -90,7 +90,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ projects }) => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Hỏi về tiến độ dự án..."
+                placeholder="Ask about projects..."
                 className="flex-1 bg-slate-100 border-none rounded-lg px-4 py-2.5 text-[13px] focus:ring-2 focus:ring-[#9f224e] outline-none"
               />
               <button 

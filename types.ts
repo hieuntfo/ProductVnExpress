@@ -13,9 +13,9 @@ export enum ProjectStatus {
 }
 
 export enum ProjectType {
-  STRATEGIC = 'Chiến lược',
-  ANNUAL = 'Thường niên', // ANN
-  NEW = 'Mới' // NEW
+  STRATEGIC = 'Strategic',
+  ANNUAL = 'Annual', // ANN
+  NEW = 'New' // NEW
 }
 
 export interface Project {
@@ -42,17 +42,16 @@ export interface BacklogItem {
   id: string;
   code: string;
   description: string;
+  priority: string;
+  quarter: number;
+  status: string;
   type: string;
   department: string;
-  status: string;
-  priority: string;
-  quarter: string;
   pm: string;
   designer: string;
+  releaseDate: string;
   po: string;
-  notes: string;
-  techHandoff?: string;
-  releaseDate?: string;
+  notes?: string;
 }
 
 export enum UserRole {

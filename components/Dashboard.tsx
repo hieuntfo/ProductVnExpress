@@ -13,7 +13,7 @@ interface DashboardProps {
 const COLORS = ['#9f224e', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
 
 const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
-  // Thống kê chính
+  // Statistics
   const stats = useMemo(() => {
     return {
       total: projects.length,
@@ -23,16 +23,16 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
     };
   }, [projects]);
 
-  // Thống kê ANN vs NEW từ projects
+  // Statistics ANN vs NEW
   const typeStats = useMemo(() => {
     // ANN = ProjectType.ANNUAL
     const annProjects = projects.filter(p => p.type === ProjectType.ANNUAL);
-    // NEW = ProjectType.NEW hoặc ProjectType.STRATEGIC (thường niên vs mới)
+    // NEW = ProjectType.NEW or ProjectType.STRATEGIC
     const newProjects = projects.filter(p => p.type === ProjectType.NEW || p.type === ProjectType.STRATEGIC);
 
     const getDesignerLoad = (data: Project[]) => {
       const counts = data.reduce((acc, p) => {
-        const d = p.designer || 'Chưa gán';
+        const d = p.designer || 'Unassigned';
         acc[d] = (acc[d] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -54,34 +54,34 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Tổng dự án</p>
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Projects</p>
           <h3 className="text-3xl font-black text-[#222]">{stats.total}</h3>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
-          <p className="text-emerald-600 text-[10px] font-bold uppercase tracking-widest mb-1">Hoàn thành</p>
+          <p className="text-emerald-600 text-[10px] font-bold uppercase tracking-widest mb-1">Completed</p>
           <h3 className="text-3xl font-black text-emerald-600">{stats.done}</h3>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
-          <p className="text-blue-500 text-[10px] font-bold uppercase tracking-widest mb-1">Đang chạy</p>
+          <p className="text-blue-500 text-[10px] font-bold uppercase tracking-widest mb-1">In Progress</p>
           <h3 className="text-3xl font-black text-blue-500">{stats.inProgress}</h3>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
-          <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">Đang chờ</p>
+          <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-1">Pending</p>
           <h3 className="text-3xl font-black text-amber-500">{stats.pending}</h3>
         </div>
       </div>
 
       {/* Main Analysis Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Nhóm ANN (Annual) */}
+        {/* ANN (Annual) */}
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div>
               <span className="bg-[#9f224e] text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">ANN</span>
-              <h4 className="text-xl font-black text-slate-900 mt-2">Dự án Thường niên ({typeStats.annCount})</h4>
+              <h4 className="text-xl font-black text-slate-900 mt-2">Annual Projects ({typeStats.annCount})</h4>
             </div>
             <div className="text-right">
-              <span className="text-xs text-slate-400 font-bold uppercase">Phân bổ Designer</span>
+              <span className="text-xs text-slate-400 font-bold uppercase">Designer Workload</span>
             </div>
           </div>
           
@@ -101,20 +101,20 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 font-bold uppercase text-xs tracking-wider border-2 border-dashed border-slate-100 rounded-xl">Chưa có dữ liệu ANN</div>
+              <div className="flex items-center justify-center h-full text-slate-400 font-bold uppercase text-xs tracking-wider border-2 border-dashed border-slate-100 rounded-xl">No Data (ANN)</div>
             )}
           </div>
         </div>
 
-        {/* Nhóm NEW (New Projects) */}
+        {/* NEW (New Projects) */}
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div>
               <span className="bg-emerald-600 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">NEW</span>
-              <h4 className="text-xl font-black text-slate-900 mt-2">Dự án Mới ({typeStats.newCount})</h4>
+              <h4 className="text-xl font-black text-slate-900 mt-2">New Projects ({typeStats.newCount})</h4>
             </div>
             <div className="text-right">
-              <span className="text-xs text-slate-400 font-bold uppercase">Phân bổ Designer</span>
+              <span className="text-xs text-slate-400 font-bold uppercase">Designer Workload</span>
             </div>
           </div>
           
@@ -140,17 +140,17 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 font-bold uppercase text-xs tracking-wider border-2 border-dashed border-slate-100 rounded-xl">Chưa có dữ liệu NEW</div>
+              <div className="flex items-center justify-center h-full text-slate-400 font-bold uppercase text-xs tracking-wider border-2 border-dashed border-slate-100 rounded-xl">No Data (NEW)</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Tóm tắt tổng thể */}
+      {/* Summary */}
       <div className="bg-[#1a1a1a] text-white p-8 rounded-3xl shadow-xl">
         <h4 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-2">
            <span className="w-2 h-2 bg-[#9f224e] rounded-full"></span>
-           Tổng tải trọng Designer
+           Total Designer Workload
         </h4>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {Array.from(new Set([...typeStats.annDesigners.map(d => d.name), ...typeStats.newDesigners.map(d => d.name)])).map((name, i) => {

@@ -28,13 +28,34 @@ export const DEPARTMENTS = [
   'Pháp luật', 'Kinh doanh', 'Đời sống', 'Du lịch', 'Số hóa'
 ];
 
-export const TEAM_MEMBERS = [
-  'NgocDT', 'HieuNT', 'AnhTH', 'TungTD', 'TrangNT', 
-  'NhuanTP', 'LinhNTN', 'NgocNV', 'BinhVH', 'VietLX', 
-  'ThaoPP', 'NamNH', 'DatNH', 'SonLH', 'SonVN', 
-  'TrungTD', 'MinhTB', 'DungNY'
+export const PRODUCT_MANAGERS = [
+  'NgocDT', 
+  'HieuNT', 
+  'AnhTH'
 ];
 
-// Danh sách PMS cũ để tương thích ngược nếu cần, nhưng ưu tiên TEAM_MEMBERS
-export const PMS = TEAM_MEMBERS;
-export const DESIGNERS = TEAM_MEMBERS;
+export const TECH_TEAM = [
+  'TrangNT', 
+  'NhuanTP', 
+  'LinhNTN', 
+  'NgocNV', 
+  'BinhVH', 
+  'VietLX', 
+  'ThaoPP'
+];
+
+// Extracted from Sheet Data observed (UX/UI Column)
+export const DESIGNERS = [
+  'SonLH', 'TrungTD', 'TungTD', 'DatNH', 'NamNH', 'SonVN'
+];
+
+// Combined list for general dropdowns
+export const TEAM_MEMBERS = [
+  ...PRODUCT_MANAGERS,
+  ...TECH_TEAM,
+  ...DESIGNERS,
+  'Chị Thanh Vân', 'Anh Minh Kha', 'Chị Thanh Hải', 'Anh Lê' // Common POs/Requesters
+];
+
+// Legacy exports
+export const PMS = PRODUCT_MANAGERS;
