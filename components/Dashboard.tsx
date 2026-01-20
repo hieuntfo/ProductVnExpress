@@ -15,7 +15,7 @@ const COLORS = ['#9f224e', '#8b5cf6', '#3b82f6', '#f59e0b', '#10b981', '#ec4899'
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/90 dark:bg-[#1e293b]/95 backdrop-blur-md p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] animate-scale-in">
+      <div className="bg-white/90 dark:bg-[#1e293b]/95 backdrop-blur-md p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] animate-scale-in">
         <p className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold mb-2">{label}</p>
         <div className="flex items-center gap-3">
            <span className="w-3 h-3 rounded-full bg-gradient-to-tr from-[#9f224e] to-[#db2777] shadow-sm"></span>
@@ -57,7 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
   }, [projects]);
 
   const StatCard = ({ title, value, gradient, icon }: any) => (
-    <div className={`relative overflow-hidden rounded-3xl p-6 shadow-xl border border-white/10 transition-transform hover:-translate-y-1 duration-300 hover:shadow-2xl group ${gradient}`}>
+    <div className={`relative overflow-hidden rounded-3xl p-6 border border-white/10 transition-transform hover:-translate-y-1 duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group ${gradient}`}>
       <div className="absolute top-0 right-0 p-4 opacity-20 mix-blend-overlay group-hover:scale-110 transition-transform duration-500">{icon}</div>
       <p className="text-white/80 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 relative z-10">{title}</p>
       <h3 className="text-4xl font-black text-white relative z-10 drop-shadow-md">{value}</h3>
@@ -76,7 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* ANN */}
-        <div className="bg-white/60 dark:bg-[#1e293b]/40 backdrop-blur-xl rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl transition-colors hover:shadow-2xl duration-500 group">
+        <div className="bg-white/60 dark:bg-[#1e293b]/40 backdrop-blur-xl rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] duration-500 group">
           <div className="flex items-center justify-between mb-8">
             <div>
               <span className="bg-[#9f224e] text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-[0_4px_10px_rgba(159,34,78,0.3)] tracking-wider">Annual</span>
@@ -106,7 +106,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
         </div>
 
         {/* NEW */}
-        <div className="bg-white/60 dark:bg-[#1e293b]/40 backdrop-blur-xl rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl transition-colors hover:shadow-2xl duration-500">
+        <div className="bg-white/60 dark:bg-[#1e293b]/40 backdrop-blur-xl rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] duration-500">
           <div className="flex items-center justify-between mb-8">
             <div>
               <span className="bg-emerald-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-[0_4px_10px_rgba(5,150,105,0.3)] tracking-wider">New / Strategic</span>
@@ -139,7 +139,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-slate-100 to-white dark:from-[#1a1a1a]/80 dark:to-[#0f1219]/80 p-10 rounded-[2rem] shadow-xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-md transition-colors hover:border-[#9f224e]/30 duration-500">
+      <div className="bg-gradient-to-r from-slate-100 to-white dark:from-[#1a1a1a]/80 dark:to-[#0f1219]/80 p-10 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 dark:border-slate-700/50 backdrop-blur-md transition-colors hover:border-[#9f224e]/30 duration-500">
         <h4 className="text-xs font-black uppercase tracking-[0.25em] mb-8 flex items-center gap-4 text-slate-500 dark:text-slate-400">
            <span className="flex h-3 w-3 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9f224e] opacity-75"></span>

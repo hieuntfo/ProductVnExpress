@@ -337,9 +337,9 @@ const App: React.FC = () => {
         <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-50 pointer-events-none z-0"></div>
         
         <div className="relative z-10 w-full max-w-md p-6">
-          <div className="bg-white/80 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/50 rounded-[2rem] p-10 shadow-2xl animate-scale-in">
+          <div className="bg-white/80 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/50 rounded-[2rem] p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] animate-scale-in">
             <div className="text-center mb-10">
-               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_10px_30px_rgba(159,34,78,0.4)] mb-6 transform hover:scale-110 transition-transform duration-300">
+               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_10px_30px_rgba(159,34,78,0.3)] mb-6 transform hover:scale-110 transition-transform duration-300">
                   V
                </div>
                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">VnExpress</h1>
@@ -367,7 +367,7 @@ const App: React.FC = () => {
               
               <button 
                 type="submit"
-                className="w-full py-4 bg-[#9f224e] hover:bg-[#b92b5b] text-white font-black rounded-xl shadow-[0_4px_15px_rgba(159,34,78,0.4)] hover:shadow-[0_6px_20px_rgba(159,34,78,0.5)] transform active:scale-95 transition-all duration-200 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
+                className="w-full py-4 bg-[#9f224e] hover:bg-[#b92b5b] text-white font-black rounded-xl shadow-[0_10px_30px_rgba(159,34,78,0.3)] hover:shadow-[0_15px_40px_rgba(159,34,78,0.4)] transform active:scale-95 transition-all duration-200 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
               >
                 Access Dashboard
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -430,7 +430,7 @@ const App: React.FC = () => {
           
           <div className="flex gap-4 items-center">
             {/* Dark Mode Toggle */}
-            <button onClick={toggleTheme} className="p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-lg active:scale-95 hover:shadow-xl" title="Toggle Theme">
+            <button onClick={toggleTheme} className="p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 hover:shadow-md" title="Toggle Theme">
                {isDarkMode ? (
                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                ) : (
@@ -438,10 +438,10 @@ const App: React.FC = () => {
                )}
             </button>
 
-            <button onClick={() => fetchData()} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-lg active:scale-95 hover:shadow-xl ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
+            <button onClick={() => fetchData()} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 hover:shadow-md ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
               <svg className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
-            <button onClick={() => setIsAddingProject(true)} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_4px_20px_rgba(159,34,78,0.4)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
+            <button onClick={() => setIsAddingProject(true)} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_10px_20px_rgba(159,34,78,0.3)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
               NEW PROJECT
             </button>
@@ -463,11 +463,11 @@ const App: React.FC = () => {
             {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} />}
             
             {(activeView === 'projects') && (
-              <div className="space-y-6">
-                 {/* SEARCH & FILTERS CONTAINER */}
-                 <div className="bg-white/60 dark:bg-[#1e293b]/40 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 rounded-3xl p-6 shadow-xl space-y-4 hover:bg-white/80 dark:hover:bg-[#1e293b]/50 transition-colors duration-500">
+              <div className="space-y-8">
+                 {/* SEARCH & FILTERS CONTAINER - STICKY */}
+                 <div className="sticky top-0 z-30 bg-white/80 dark:bg-[#0b1121]/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-6 shadow-[0_4px_30px_-4px_rgba(0,0,0,0.05)] space-y-4 hover:bg-white/95 dark:hover:bg-[#0b1121]/95 transition-all duration-300">
                     <div className="relative w-full group">
-                        <input type="text" placeholder="Search projects, PM, Department..." className="w-full pl-12 pr-4 py-4 bg-white dark:bg-[#0f172a]/60 border border-slate-200 dark:border-slate-600/40 rounded-2xl text-sm outline-none shadow-inner focus:ring-2 focus:ring-[#9f224e] focus:border-[#9f224e] text-slate-900 dark:text-white placeholder-slate-400 transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                        <input type="text" placeholder="Search projects, PM, Department..." className="w-full pl-12 pr-4 py-4 bg-slate-50/50 dark:bg-[#1e293b]/60 border border-slate-200/80 dark:border-slate-600/40 rounded-2xl text-sm outline-none shadow-inner focus:ring-2 focus:ring-[#9f224e] focus:border-[#9f224e] text-slate-900 dark:text-white placeholder-slate-400 transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                         <svg className="w-5 h-5 absolute left-4 top-4 text-slate-400 group-focus-within:text-[#9f224e] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         
                         {(searchQuery || filterDept !== 'All' || filterPM !== 'All' || filterStatus !== 'All' || filterType !== 'All' || filterQuarter !== 'All') && (
@@ -485,7 +485,7 @@ const App: React.FC = () => {
                        ].map((f, i) => (
                         <div key={i} className="flex flex-col gap-1.5 group">
                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">{f.label}</label>
-                          <select value={f.val} onChange={(e) => f.set(e.target.value)} className="bg-white/80 dark:bg-[#1e293b]/80 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-600/40 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer shadow-sm">
+                          <select value={f.val} onChange={(e) => f.set(e.target.value)} className="bg-slate-50/50 dark:bg-[#1e293b]/80 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/80 dark:border-slate-600/40 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer shadow-sm">
                             <option value="All">{f.all}</option>
                             {f.opts.map((o: string) => <option key={o} value={o}>{o}</option>)}
                           </select>
@@ -493,7 +493,7 @@ const App: React.FC = () => {
                        ))}
                        <div className="flex flex-col gap-1.5 group">
                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Quarter</label>
-                          <select value={filterQuarter} onChange={(e) => setFilterQuarter(e.target.value)} className="bg-white/80 dark:bg-[#1e293b]/80 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-600/40 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer shadow-sm">
+                          <select value={filterQuarter} onChange={(e) => setFilterQuarter(e.target.value)} className="bg-slate-50/50 dark:bg-[#1e293b]/80 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/80 dark:border-slate-600/40 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer shadow-sm">
                             <option value="All">All Quarters</option>
                             {[1,2,3,4].map(q => <option key={q} value={q}>Quarter {q}</option>)}
                           </select>
@@ -520,7 +520,7 @@ const App: React.FC = () => {
       {/* MODAL: ADD PROJECT */}
       {isAddingProject && (
         <div className="fixed inset-0 bg-slate-900/50 dark:bg-black/90 backdrop-blur-md z-[999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-2xl shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="p-8 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between sticky top-0 bg-white dark:bg-[#1e293b] z-10">
               <h2 className="text-2xl font-black text-slate-900 dark:text-white">Initialize Project {selectedYear}</h2>
               <button onClick={() => setIsAddingProject(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-400 hover:text-slate-900 dark:hover:text-white">
@@ -571,7 +571,7 @@ const App: React.FC = () => {
       {/* MODAL: PROJECT DETAIL */}
       {selectedProject && (
         <div className="fixed inset-0 bg-slate-900/50 dark:bg-black/90 backdrop-blur-md z-[999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-2xl shadow-2xl animate-scale-in">
+          <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-2xl animate-scale-in">
             <div className="p-8 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-3">

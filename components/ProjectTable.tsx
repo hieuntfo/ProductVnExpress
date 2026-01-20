@@ -35,7 +35,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
   );
 
   return (
-    <div className="bg-white/80 dark:bg-[#1e293b]/50 backdrop-blur-2xl rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:bg-white dark:hover:bg-[#1e293b]/60">
+    <div className="bg-white/80 dark:bg-[#1e293b]/50 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:bg-white dark:hover:bg-[#1e293b]/60">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
