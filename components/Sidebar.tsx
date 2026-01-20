@@ -5,10 +5,11 @@ interface SidebarProps {
   activeView: 'dashboard' | 'projects' | 'team';
   setActiveView: (view: 'dashboard' | 'projects' | 'team') => void;
   isAdmin: boolean;
+  userName: string; // New prop for dynamic name
   onLogout: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, userName, onLogout }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Overview', icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -20,6 +21,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, o
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 15.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
     )},
   ];
+
+  // Generate avatar based on dynamic userName
+  const avatarUrl = isAdmin 
+    ? "https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128"
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random&color=fff&size=128`;
 
   return (
     <div className="w-64 bg-white dark:bg-[#111827] text-slate-800 dark:text-white flex flex-col h-screen fixed left-0 top-0 border-r border-slate-200 dark:border-slate-700/50 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-colors duration-300">
@@ -69,12 +75,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, o
         <div className="flex items-center gap-3 mb-4">
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#9f224e] to-purple-500 p-[2px]">
-              <img src="https://picsum.photos/seed/hieunt/40/40" className="w-full h-full rounded-full border-2 border-white dark:border-[#1e293b]" alt="Member" />
+              <img src={avatarUrl} className="w-full h-full rounded-full border-2 border-white dark:border-[#1e293b]" alt="Member" />
             </div>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#1e293b]"></div>
           </div>
           <div className="overflow-hidden">
-            <p className="text-sm font-bold truncate text-slate-800 dark:text-white">HieuNT</p>
+            <p className="text-sm font-bold truncate text-slate-800 dark:text-white">{userName}</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-widest">{isAdmin ? 'Administrator' : 'Member'}</p>
           </div>
         </div>

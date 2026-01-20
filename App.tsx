@@ -18,6 +18,7 @@ const CACHE_KEY_PROJECTS = 'vne_pms_projects';
 const SESSION_KEY_AUTH = 'vne_pms_auth_session';
 const SESSION_KEY_ROLE = 'vne_pms_role';
 const SESSION_KEY_TIMESTAMP = 'vne_pms_timestamp';
+const SESSION_KEY_USER_NAME = 'vne_pms_username'; // New key for user display name
 
 const App: React.FC = () => {
   // --- Theme State (Auto-VN Time) ---
@@ -65,6 +66,10 @@ const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     return sessionStorage.getItem(SESSION_KEY_ROLE) === 'admin';
   });
+
+  const [userName, setUserName] = useState<string>(() => {
+    return sessionStorage.getItem(SESSION_KEY_USER_NAME) || 'Guest';
+  });
   
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     const auth = sessionStorage.getItem(SESSION_KEY_AUTH) === 'true';
@@ -88,6 +93,25 @@ const App: React.FC = () => {
   const [loginTab, setLoginTab] = useState<'user' | 'admin'>('user');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // --- Active Users Simulation (Admin Only) ---
+  const [activeUserCount, setActiveUserCount] = useState(12); // Initial fake count
+
+  useEffect(() => {
+    if (!isAdmin || !isAuthenticated) return;
+    
+    // Randomly fluctuate user count to simulate live traffic
+    const interval = setInterval(() => {
+       setActiveUserCount(prev => {
+          const change = Math.floor(Math.random() * 5) - 2; // Random -2 to +2
+          const next = prev + change;
+          // Keep active users between 5 and 45
+          return next < 5 ? 5 : next > 45 ? 45 : next;
+       });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isAdmin, isAuthenticated]);
 
   // --- Main App State ---
   const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'team'>('dashboard');
@@ -154,9 +178,15 @@ const App: React.FC = () => {
       if (passwordInput === "123456") {
         setIsAuthenticated(true);
         setIsAdmin(false);
+        // Generate random User ID (e.g. User 42)
+        const randomId = Math.floor(Math.random() * 100) + 1;
+        const generatedName = `User ${randomId}`;
+        setUserName(generatedName);
+        
         sessionStorage.setItem(SESSION_KEY_AUTH, 'true');
         sessionStorage.setItem(SESSION_KEY_ROLE, 'user');
         sessionStorage.setItem(SESSION_KEY_TIMESTAMP, now);
+        sessionStorage.setItem(SESSION_KEY_USER_NAME, generatedName);
       } else {
         setLoginError('Mật khẩu User không đúng (Gợi ý: 123456)');
       }
@@ -165,9 +195,13 @@ const App: React.FC = () => {
       if (passwordInput === "vnexpress") {
         setIsAuthenticated(true);
         setIsAdmin(true);
+        const adminName = "HieuNT";
+        setUserName(adminName);
+
         sessionStorage.setItem(SESSION_KEY_AUTH, 'true');
         sessionStorage.setItem(SESSION_KEY_ROLE, 'admin');
         sessionStorage.setItem(SESSION_KEY_TIMESTAMP, now);
+        sessionStorage.setItem(SESSION_KEY_USER_NAME, adminName);
       } else {
         setLoginError('Mật khẩu Admin không đúng');
       }
@@ -180,6 +214,8 @@ const App: React.FC = () => {
     sessionStorage.removeItem(SESSION_KEY_AUTH);
     sessionStorage.removeItem(SESSION_KEY_ROLE);
     sessionStorage.removeItem(SESSION_KEY_TIMESTAMP);
+    sessionStorage.removeItem(SESSION_KEY_USER_NAME);
+    setUserName('Guest');
     setLoginTab('user'); // Reset default tab
     setPasswordInput('');
   };
@@ -454,13 +490,14 @@ const App: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             action: 'update',
-            project_no: updatedProject.code, // Find row by this
+            // Ensure we trim whitespace from the project code (project_no) to match exact cell value
+            project_no: updatedProject.code.trim(), 
             status: updatedProject.status,   // Update Col O
             release_date: updatedProject.releaseDate, // Update Col J
             kpi: updatedProject.kpi          // Update Col S
           })
         });
-        alert('Cập nhật thành công! Dữ liệu đang được đồng bộ về Sheet.');
+        alert('Cập nhật thành công! Dữ liệu đang được đồng bộ về Sheet (Project Plan).');
       } catch (error) { 
         console.error(error); 
         alert('Lỗi kết nối khi cập nhật. Vui lòng kiểm tra lại mạng.'); 
@@ -566,17 +603,34 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1121] flex font-sans text-slate-800 dark:text-slate-200 selection:bg-[#9f224e] selection:text-white relative overflow-hidden transition-colors duration-700">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
       
-      <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={isAdmin} onLogout={handleLogout} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={isAdmin} userName={userName} onLogout={handleLogout} />
       
       <main className="flex-1 ml-64 p-10 relative z-10 transition-all duration-500">
         <header className="flex items-center justify-between mb-10 pb-6 relative z-10 animate-fade-in">
           <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-amber-400 animate-ping' : 'bg-[#9f224e] shadow-[0_0_8px_#9f224e]'}`}></span>
-              <span className="text-[10px] font-black uppercase text-[#9f224e] tracking-[0.3em]">
-                {isRefreshing ? 'Syncing...' : isAdmin ? 'Admin Mode' : 'Live System'}
-              </span>
+            <div className="flex items-center gap-4 mb-2">
+              {/* Existing Status Badge */}
+              <div className="flex items-center gap-2">
+                 <span className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-amber-400 animate-ping' : 'bg-[#9f224e] shadow-[0_0_8px_#9f224e]'}`}></span>
+                 <span className="text-[10px] font-black uppercase text-[#9f224e] tracking-[0.3em]">
+                   {isRefreshing ? 'Syncing...' : isAdmin ? 'Admin Mode' : 'Live System'}
+                 </span>
+              </div>
+              
+              {/* Active User Count (Admin Only) */}
+              {isAdmin && (
+                <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest">
+                       {activeUserCount} Users Online
+                    </span>
+                 </div>
+              )}
             </div>
+            
             <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-sm">
               {activeView === 'dashboard' ? `Report ${selectedYear}` : 
                activeView === 'projects' ? 'Project Plan' : 'Member Hub'}
