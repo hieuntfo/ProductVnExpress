@@ -168,6 +168,7 @@ const App: React.FC = () => {
         colMap['pm'] = 12; // Column M
         colMap['designer'] = 13; // Column N
         colMap['status'] = 14; // Column O
+        colMap['kpi'] = 18; // Column S (Index 18)
         headerRowIndex = 0; // Assume first row is header or data starts shortly after
       }
 
@@ -477,6 +478,10 @@ const App: React.FC = () => {
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Phase</p>
                     <p className="text-sm font-bold text-slate-700">{selectedProject.phase || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">KPI / Goals</p>
+                    <p className="text-sm font-bold text-slate-700">{selectedProject.kpi || 'Not set'}</p>
                   </div>
                 </div>
                 <div className="space-y-6">
