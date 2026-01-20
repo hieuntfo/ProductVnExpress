@@ -10,15 +10,18 @@ import MemberHub from './components/MemberHub';
 
 const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?output=tsv";
 
+// --- CONFIGURATION ---
 const REFRESH_INTERVAL = 120000; // 2 minutes auto-refresh
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+// PLEASE REPLACE THIS URL WITH YOUR UPLOADED IMAGE URL
+const LOGIN_BG_URL = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop"; 
 
 // Cache keys
 const CACHE_KEY_PROJECTS = 'vne_pms_projects';
 const SESSION_KEY_AUTH = 'vne_pms_auth_session';
 const SESSION_KEY_ROLE = 'vne_pms_role';
 const SESSION_KEY_TIMESTAMP = 'vne_pms_timestamp';
-const SESSION_KEY_USER_NAME = 'vne_pms_username'; // New key for user display name
+const SESSION_KEY_USER_NAME = 'vne_pms_username';
 
 const App: React.FC = () => {
   // --- Theme State (Auto-VN Time) ---
@@ -95,7 +98,7 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
 
   // --- Active Users Simulation (Admin Only) ---
-  const [activeUserCount, setActiveUserCount] = useState(12); // Initial fake count
+  const [activeUserCount, setActiveUserCount] = useState(12);
 
   useEffect(() => {
     if (!isAdmin || !isAuthenticated) return;
@@ -178,9 +181,8 @@ const App: React.FC = () => {
       if (passwordInput === "123456") {
         setIsAuthenticated(true);
         setIsAdmin(false);
-        // Generate random User ID (e.g. User 42)
-        const randomId = Math.floor(Math.random() * 100) + 1;
-        const generatedName = `User ${randomId}`;
+        const userSeat = Math.floor(Math.random() * 20) + 1; 
+        const generatedName = `User ${userSeat}`;
         setUserName(generatedName);
         
         sessionStorage.setItem(SESSION_KEY_AUTH, 'true');
@@ -216,7 +218,7 @@ const App: React.FC = () => {
     sessionStorage.removeItem(SESSION_KEY_TIMESTAMP);
     sessionStorage.removeItem(SESSION_KEY_USER_NAME);
     setUserName('Guest');
-    setLoginTab('user'); // Reset default tab
+    setLoginTab('user');
     setPasswordInput('');
   };
 
@@ -237,7 +239,7 @@ const App: React.FC = () => {
        } else {
          handleLogout(); // Force logout if no timestamp found
        }
-    }, 60000); // 1 minute
+    }, 60000); 
 
     return () => clearInterval(interval);
   }, [isAuthenticated]);
@@ -284,7 +286,6 @@ const App: React.FC = () => {
   // --- Helper: Get Next Project Code ---
   const getNextProjectCode = useCallback(() => {
     if (!projects || projects.length === 0) return "1";
-    // Filter out non-numeric codes to avoid NaN issues, find max, then add 1
     const maxCode = projects.reduce((max, p) => {
         const num = parseInt(p.code, 10);
         return !isNaN(num) && num > max ? num : max;
@@ -311,7 +312,6 @@ const App: React.FC = () => {
       let headerRowIndex = -1;
       const colMap: Record<string, number> = {};
 
-      // Robust Header Detection
       for (let i = 0; i < Math.min(rows.length, 20); i++) {
         const rowLower = rows[i].map(c => c.toLowerCase().trim());
         if (rowLower.some(c => c.includes('tên') || c.includes('project') || c.includes('mô tả') || c.includes('description') || c.includes('issue') || c.includes('summary'))) {
@@ -336,8 +336,6 @@ const App: React.FC = () => {
         }
       }
 
-      // FALLBACK INDICES based on specific requirements:
-      // Code(A)=0, ReleaseDate(J)=9, Status(O)=14, KPI(S)=18
       if (headerRowIndex === -1) {
          colMap['code'] = 0; 
          colMap['type'] = 1; 
@@ -346,12 +344,12 @@ const App: React.FC = () => {
          colMap['department'] = 4; 
          colMap['po'] = 5; 
          colMap['techHandoff'] = 6; 
-         colMap['releaseDate'] = 9; // Column J
+         colMap['releaseDate'] = 9; 
          colMap['quarter'] = 10; 
          colMap['pm'] = 12; 
          colMap['designer'] = 13; 
-         colMap['status'] = 14; // Column O
-         colMap['kpi'] = 18; // Column S
+         colMap['status'] = 14; 
+         colMap['kpi'] = 18; 
          headerRowIndex = 0;
       }
       
@@ -490,11 +488,10 @@ const App: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             action: 'update',
-            // Ensure we trim whitespace from the project code (project_no) to match exact cell value
-            project_no: updatedProject.code.trim(), 
-            status: updatedProject.status,   // Update Col O
-            release_date: updatedProject.releaseDate, // Update Col J
-            kpi: updatedProject.kpi          // Update Col S
+            project_no: String(updatedProject.code).trim(), 
+            status: updatedProject.status,
+            release_date: updatedProject.releaseDate,
+            kpi: updatedProject.kpi
           })
         });
         alert('Cập nhật thành công! Dữ liệu đang được đồng bộ về Sheet (Project Plan).');
@@ -517,52 +514,59 @@ const App: React.FC = () => {
   // --- RENDER LOGIN VIEW ---
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1121] flex items-center justify-center font-sans text-slate-800 dark:text-slate-200 relative overflow-hidden transition-colors duration-700">
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-50 pointer-events-none z-0"></div>
+      <div className="min-h-screen relative flex items-center justify-center overflow-hidden font-sans">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img src={LOGIN_BG_URL} className="w-full h-full object-cover" alt="VnExpress Office" />
+          {/* Gradient Overlay: Top (Dark) -> Bottom (Vne Red) for brand identity and text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#9f224e]/90 via-slate-900/60 to-slate-900/40 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-black/30"></div> {/* Additional dimming */}
+        </div>
         
-        <div className="relative z-10 w-full max-w-md p-6">
-          <div className="bg-white/80 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/50 rounded-[2rem] p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] animate-scale-in">
+        <div className="relative z-10 w-full max-w-md p-6 animate-scale-in">
+          {/* Glassmorphism Card */}
+          <div className="bg-white/80 dark:bg-[#0f172a]/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2rem] p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
             <div className="text-center mb-10">
-               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_10px_30px_rgba(159,34,78,0.3)] mb-6 transform hover:scale-110 transition-transform duration-300">
+               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_10px_30px_rgba(159,34,78,0.5)] mb-6 transform hover:scale-110 transition-transform duration-300 ring-4 ring-white/20">
                   V
                </div>
-               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">VnExpress</h1>
-               <p className="text-[#9f224e] font-bold text-xs uppercase tracking-[0.3em] mt-2">Product Management 2026</p>
+               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-sm">VnExpress</h1>
+               <p className="text-[#9f224e] dark:text-[#f43f5e] font-bold text-xs uppercase tracking-[0.3em] mt-2 text-shadow-sm">Product Management 2026</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Role Selection Tabs */}
-              <div className="bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-xl flex relative mb-6">
+              <div className="bg-slate-100/50 dark:bg-black/30 p-1.5 rounded-xl flex relative mb-6 backdrop-blur-sm border border-white/10">
                  <button 
                     type="button" 
                     onClick={() => { setLoginTab('user'); setPasswordInput(''); setLoginError(''); }}
-                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'user' ? 'bg-white dark:bg-[#9f224e] text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'user' ? 'bg-white text-[#9f224e] shadow-md' : 'text-slate-500 dark:text-slate-300 hover:text-white'}`}
                  >
                    User
                  </button>
                  <button 
                     type="button" 
                     onClick={() => { setLoginTab('admin'); setPasswordInput(''); setLoginError(''); }}
-                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'admin' ? 'bg-white dark:bg-[#9f224e] text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'admin' ? 'bg-white text-[#9f224e] shadow-md' : 'text-slate-500 dark:text-slate-300 hover:text-white'}`}
                  >
                    Admin
                  </button>
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 pl-1">
+                <label className="block text-xs font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest mb-2 pl-1">
                   {loginTab === 'user' ? 'Member Password' : 'Administrator Key'}
                 </label>
                 <input 
                   type="password" 
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className="w-full px-4 py-4 bg-slate-50/50 dark:bg-[#0f172a]/50 border border-slate-200 dark:border-slate-600/40 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#9f224e] focus:border-transparent transition-all shadow-inner font-bold tracking-widest"
+                  className="w-full px-4 py-4 bg-white/50 dark:bg-black/40 border border-slate-200/50 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#9f224e] focus:border-transparent transition-all shadow-inner font-bold tracking-widest backdrop-blur-sm"
                   placeholder="••••••"
                   autoFocus
                 />
                 {loginError && (
-                  <p className="text-red-500 dark:text-red-400 text-xs mt-3 flex items-center gap-1 font-bold animate-pulse">
+                  <p className="text-red-600 dark:text-red-300 text-xs mt-3 flex items-center gap-1 font-bold animate-pulse bg-red-100/50 dark:bg-red-900/30 p-2 rounded-lg">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     {loginError}
                   </p>
@@ -571,28 +575,25 @@ const App: React.FC = () => {
               
               <button 
                 type="submit"
-                className="w-full py-4 bg-[#9f224e] hover:bg-[#b92b5b] text-white font-black rounded-xl shadow-[0_10px_30px_rgba(159,34,78,0.3)] hover:shadow-[0_15px_40px_rgba(159,34,78,0.4)] transform active:scale-95 transition-all duration-200 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
+                className="w-full py-4 bg-[#9f224e] hover:bg-[#b92b5b] text-white font-black rounded-xl shadow-[0_10px_30px_rgba(159,34,78,0.4)] hover:shadow-[0_15px_40px_rgba(159,34,78,0.5)] transform active:scale-95 transition-all duration-200 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group ring-2 ring-transparent hover:ring-[#db2777]"
               >
                 {loginTab === 'user' ? 'Access Dashboard' : 'Admin Console'}
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
               </button>
             </form>
 
-             <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-700/50 text-center">
-              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4">Request Access</p>
-              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-800/50 flex flex-col items-center group hover:border-[#9f224e]/30 transition-colors cursor-default">
-                 <div className="relative mb-3">
-                    <img src="https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128" alt="Admin Hieu Nguyen" className="w-12 h-12 rounded-full border-2 border-[#9f224e] shadow-[0_0_15px_rgba(159,34,78,0.3)] object-cover" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-50 dark:border-[#1e293b] animate-pulse"></div>
+             <div className="mt-10 pt-8 border-t border-slate-200/50 dark:border-white/10 text-center">
+              <p className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Internal Access Only</p>
+              <div className="inline-flex items-center gap-2 bg-slate-50/50 dark:bg-white/5 rounded-full px-4 py-2 border border-slate-200/50 dark:border-white/10 backdrop-blur-sm">
+                 <div className="relative">
+                    <img src="https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=64" alt="Admin" className="w-6 h-6 rounded-full border border-white dark:border-white/20" />
+                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white"></div>
                  </div>
-                 <p className="text-xs font-bold text-slate-800 dark:text-white mb-1">Admin: Hieu Nguyen</p>
-                 <div className="space-y-1">
-                   <p className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-[#9f224e] transition-colors cursor-pointer">nguyenhieu@vnexpress.net</p>
-                 </div>
+                 <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Contact: <span className="text-[#9f224e] dark:text-white">nguyenhieu@vnexpress.net</span></span>
               </div>
             </div>
           </div>
-          <p className="text-center text-slate-400 dark:text-slate-600 text-[10px] mt-6 font-medium">© 2026 VnExpress Product & Technology</p>
+          <p className="text-center text-white/60 text-[10px] mt-6 font-medium drop-shadow-md">© 2026 VnExpress Product & Technology</p>
         </div>
       </div>
     );
