@@ -35,25 +35,27 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
       
       <nav className="flex-1 px-4 mt-8">
         <p className="px-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Main Menu</p>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {menuItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => setActiveView(item.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${
+                className={`w-full flex items-center gap-4 px-5 py-4 rounded-[18px] transition-all duration-300 group relative overflow-hidden ${
                   activeView === item.id 
-                    ? 'text-slate-900 dark:text-white shadow-lg shadow-[#9f224e]/20' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                    ? 'text-[#9f224e] dark:text-white bg-slate-50 dark:bg-[#1f293a] shadow-inner' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
                 }`}
               >
+                {/* Active Indicator Bar */}
                 {activeView === item.id && (
-                  <div className="absolute inset-0 bg-slate-100 dark:bg-gradient-to-r dark:from-[#9f224e] dark:to-[#801b3f] dark:opacity-100 opacity-100 border-l-4 border-[#9f224e] dark:border-0 z-0"></div>
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[#9f224e] rounded-r-full"></div>
                 )}
+                
                 <div className="relative z-10 flex items-center gap-3">
-                    <span className={`${activeView === item.id ? 'text-[#9f224e] dark:text-white' : 'group-hover:text-[#9f224e] transition-colors'}`}>
+                    <span className={`${activeView === item.id ? 'text-[#9f224e] dark:text-[#db2777] scale-110' : 'group-hover:text-[#9f224e]'} transition-all duration-300`}>
                         {item.icon}
                     </span>
-                    <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                    <span className={`font-bold text-sm tracking-wide ${activeView === item.id ? 'font-black' : 'font-medium'}`}>{item.label}</span>
                 </div>
               </button>
             </li>
@@ -61,10 +63,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
         </ul>
       </nav>
 
-      <div className="p-4 m-4 rounded-2xl bg-gradient-to-br from-slate-100 to-white dark:from-[#1f293a] dark:to-[#111827] border border-slate-200 dark:border-slate-700/50 shadow-lg cursor-pointer hover:border-[#9f224e]/50 transition-colors group">
+      <div className="p-4 m-4 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-[#1f293a] dark:to-[#111827] border border-slate-200 dark:border-slate-700/50 shadow-lg cursor-pointer hover:border-[#9f224e]/30 transition-all duration-300 group hover:-translate-y-1">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#9f224e] to-purple-500 p-[2px] group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#9f224e] to-purple-500 p-[2px] group-hover:rotate-12 transition-transform duration-500">
               <img src="https://picsum.photos/seed/hieunt/40/40" className="w-full h-full rounded-full border-2 border-white dark:border-[#1e293b]" alt="Member" />
             </div>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#1e293b] shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>

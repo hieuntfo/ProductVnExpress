@@ -14,7 +14,6 @@ const REFRESH_INTERVAL = 120000; // 2 minutes auto-refresh
 
 // Cache keys
 const CACHE_KEY_PROJECTS = 'vne_pms_projects';
-const CACHE_KEY_LAST_UPDATED = 'vne_pms_last_updated';
 const SESSION_KEY_AUTH = 'vne_pms_auth_session';
 
 const App: React.FC = () => {
@@ -72,7 +71,6 @@ const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -190,7 +188,6 @@ const App: React.FC = () => {
       // Robust Header Detection
       for (let i = 0; i < Math.min(rows.length, 20); i++) {
         const rowLower = rows[i].map(c => c.toLowerCase().trim());
-        // Relaxed condition: Just finding 'Project' or 'Description' or 'Name' is enough
         if (rowLower.some(c => c.includes('tên') || c.includes('project') || c.includes('mô tả') || c.includes('description') || c.includes('issue') || c.includes('summary'))) {
           headerRowIndex = i;
           rows[i].forEach((cell, idx) => {
@@ -214,19 +211,16 @@ const App: React.FC = () => {
       }
 
       if (headerRowIndex === -1) {
-         // Fallback mapping if no header detected, assume standard layout
          colMap['code'] = 0; colMap['type'] = 1; colMap['description'] = 2; colMap['phase'] = 3;
          colMap['department'] = 4; colMap['po'] = 5; colMap['techHandoff'] = 6; colMap['releaseDate'] = 8;
          colMap['quarter'] = 10; colMap['pm'] = 12; colMap['designer'] = 13; colMap['status'] = 14; colMap['kpi'] = 18; 
          headerRowIndex = 0;
       }
       
-      // Safety defaults if specific critical columns missed in mapping
       if (colMap['description'] === undefined) colMap['description'] = 2; 
 
       const parsedProjects: Project[] = rows.slice(headerRowIndex + 1).filter(r => {
            const desc = (r[colMap['description']] || '').trim();
-           // Strict filter to remove empty rows or repeated header rows
            return desc.length > 0 && desc.toLowerCase() !== 'description' && desc.toLowerCase() !== 'issue description' && desc.toLowerCase() !== 'tên dự án';
         }).map((row, idx) => {
           const getVal = (key: string) => (row[colMap[key]] || '').trim();
@@ -234,7 +228,7 @@ const App: React.FC = () => {
           const techHandoff = getVal('techHandoff');
           const quarterStr = getVal('quarter');
           
-          let year = 2026; // Default to 2026 as per app context
+          let year = 2026; 
           const dateStr = (releaseDate + techHandoff + quarterStr).toUpperCase();
           if (dateStr.includes('/25') || dateStr.includes('2025') || quarterStr.includes('25')) year = 2025;
           else if (dateStr.includes('/24') || dateStr.includes('2024')) year = 2024;
@@ -260,10 +254,8 @@ const App: React.FC = () => {
 
       if (parsedProjects.length > 0) {
         setProjects(parsedProjects);
-        setLastUpdated(new Date());
         localStorage.setItem(CACHE_KEY_PROJECTS, JSON.stringify(parsedProjects));
       } else {
-        // If parsed result is empty (e.g. data structure change), FORCE fallback to cache or mock
         console.warn("Parsed projects empty. Falling back.");
         throw new Error("Empty parsed data");
       }
@@ -341,15 +333,13 @@ const App: React.FC = () => {
   // --- RENDER LOGIN VIEW ---
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#151e32] flex items-center justify-center font-sans text-slate-800 dark:text-slate-200 relative overflow-hidden transition-colors duration-500">
-        {/* GLOBAL LIGHTING EFFECT */}
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#334155,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
-        <div className="fixed top-0 left-0 right-0 h-96 bg-gradient-to-b from-[#9f224e]/5 to-transparent pointer-events-none z-0"></div>
-
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1121] flex items-center justify-center font-sans text-slate-800 dark:text-slate-200 relative overflow-hidden transition-colors duration-700">
+        <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-50 pointer-events-none z-0"></div>
+        
         <div className="relative z-10 w-full max-w-md p-6">
-          <div className="bg-white/70 dark:bg-[#1e293b]/40 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 rounded-3xl p-10 shadow-2xl animate-scale-in">
+          <div className="bg-white/80 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/50 rounded-[2rem] p-10 shadow-2xl animate-scale-in">
             <div className="text-center mb-10">
-               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_0_20px_rgba(159,34,78,0.5)] mb-6">
+               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_10px_30px_rgba(159,34,78,0.4)] mb-6 transform hover:scale-110 transition-transform duration-300">
                   V
                </div>
                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">VnExpress</h1>
@@ -363,8 +353,8 @@ const App: React.FC = () => {
                   type="password" 
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className="w-full px-4 py-4 bg-slate-50 dark:bg-[#0f172a]/60 border border-slate-200 dark:border-slate-600/40 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#9f224e] focus:border-transparent transition-all shadow-inner"
-                  placeholder="Enter access code..."
+                  className="w-full px-4 py-4 bg-slate-50/50 dark:bg-[#0f172a]/50 border border-slate-200 dark:border-slate-600/40 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#9f224e] focus:border-transparent transition-all shadow-inner font-bold tracking-widest"
+                  placeholder="••••••"
                   autoFocus
                 />
                 {loginError && (
@@ -384,17 +374,16 @@ const App: React.FC = () => {
               </button>
             </form>
 
-            <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-700/50 text-center">
+             <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-700/50 text-center">
               <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4">Request Access</p>
-              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-200 dark:border-slate-800/50 flex flex-col items-center group hover:border-[#9f224e]/30 transition-colors">
+              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-800/50 flex flex-col items-center group hover:border-[#9f224e]/30 transition-colors cursor-default">
                  <div className="relative mb-3">
-                    <img src="https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128" alt="Admin Hieu Nguyen" className="w-14 h-14 rounded-full border-2 border-[#9f224e] shadow-[0_0_15px_rgba(159,34,78,0.3)] object-cover" />
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-50 dark:border-[#1e293b] animate-pulse"></div>
+                    <img src="https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128" alt="Admin Hieu Nguyen" className="w-12 h-12 rounded-full border-2 border-[#9f224e] shadow-[0_0_15px_rgba(159,34,78,0.3)] object-cover" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-50 dark:border-[#1e293b] animate-pulse"></div>
                  </div>
                  <p className="text-xs font-bold text-slate-800 dark:text-white mb-1">Admin: Hieu Nguyen</p>
                  <div className="space-y-1">
-                   <p className="text-xs text-slate-500 dark:text-slate-400 hover:text-[#9f224e] transition-colors cursor-pointer">nguyenhieu@vnexpress.net</p>
-                   <p className="text-xs text-slate-500 dark:text-slate-400">Mobile: 0902423384</p>
+                   <p className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-[#9f224e] transition-colors cursor-pointer">nguyenhieu@vnexpress.net</p>
                  </div>
               </div>
             </div>
@@ -407,15 +396,13 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#151e32] flex font-sans text-slate-800 dark:text-slate-200 selection:bg-[#9f224e] selection:text-white relative overflow-hidden transition-colors duration-500">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#334155,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1121] flex font-sans text-slate-800 dark:text-slate-200 selection:bg-[#9f224e] selection:text-white relative overflow-hidden transition-colors duration-700">
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
       
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
       
-      <main className="flex-1 ml-64 p-10 relative z-10 transition-all duration-300">
-        <div className="fixed top-0 left-64 right-0 h-96 bg-gradient-to-b from-[#9f224e]/5 to-transparent pointer-events-none z-0"></div>
-
-        <header className="flex items-center justify-between mb-10 pb-6 relative z-10">
+      <main className="flex-1 ml-64 p-10 relative z-10 transition-all duration-500">
+        <header className="flex items-center justify-between mb-10 pb-6 relative z-10 animate-fade-in">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <span className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-amber-400 animate-ping' : 'bg-[#9f224e] shadow-[0_0_8px_#9f224e]'}`}></span>
@@ -454,7 +441,7 @@ const App: React.FC = () => {
             <button onClick={() => fetchData()} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-lg active:scale-95 hover:shadow-xl ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
               <svg className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
-            <button onClick={() => setIsAddingProject(true)} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_4px_20px_rgba(159,34,78,0.4)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0">
+            <button onClick={() => setIsAddingProject(true)} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_4px_20px_rgba(159,34,78,0.4)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
               NEW PROJECT
             </button>
@@ -648,10 +635,10 @@ const App: React.FC = () => {
       )}
 
       <style>{`
-        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes scale-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.2, 0, 0, 1); }
+        .animate-scale-in { animation: scale-in 0.5s cubic-bezier(0.2, 0, 0, 1); }
       `}</style>
     </div>
   );
