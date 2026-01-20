@@ -1,13 +1,14 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Project, ProjectStatus } from '../types';
-import { PRODUCT_MANAGERS, TECH_TEAM, DESIGNERS } from '../constants';
+import { PRODUCT_MANAGERS, DESIGNERS, MEMBER_PROFILES } from '../constants';
 
 interface MemberHubProps {
   projects: Project[];
 }
 
 const MemberHub: React.FC<MemberHubProps> = ({ projects }) => {
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   
   const getMemberStats = (names: string[], roleLabel: string) => {
     return names.map(name => {
@@ -40,8 +41,8 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects }) => {
   };
 
   const pmStats = useMemo(() => getMemberStats(PRODUCT_MANAGERS, 'Product Manager'), [projects]);
-  const techStats = useMemo(() => getMemberStats(TECH_TEAM, 'Tech Team'), [projects]);
-  const designStats = useMemo(() => getMemberStats(DESIGNERS, 'Designer'), [projects]);
+  // Tech Team removed as per request
+  const designStats = useMemo(() => getMemberStats(DESIGNERS, 'UI/UX Designer'), [projects]);
 
   const renderSection = (title: string, stats: ReturnType<typeof getMemberStats>, colorClass: string, icon: React.ReactNode) => (
     <div className="mb-10">
@@ -55,14 +56,22 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {stats.map((member) => (
-          <div key={member.name} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-[#9f224e] transition-all group">
+          <div 
+            key={member.name} 
+            onClick={() => setSelectedMember(member.name)}
+            className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-[#9f224e] hover:shadow-lg transition-all group cursor-pointer active:scale-95"
+          >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-md ${member.active > 0 ? 'bg-[#9f224e]' : 'bg-slate-300'}`}>
-                  {member.name.substring(0, 2).toUpperCase()}
+                  {MEMBER_PROFILES[member.name]?.avatar ? (
+                    <img src={MEMBER_PROFILES[member.name].avatar} alt={member.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    member.name.substring(0, 2).toUpperCase()
+                  )}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 leading-tight">{member.name}</h4>
+                  <h4 className="font-bold text-slate-900 leading-tight group-hover:text-[#9f224e] transition-colors">{member.name}</h4>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{member.role}</p>
                 </div>
               </div>
@@ -103,17 +112,7 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects }) => {
                    </>
                 )}
 
-                {title === 'Tech Team' && (
-                   <>
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 text-center col-span-2">
-                      <p className="text-[9px] text-slate-400 font-bold uppercase">Requests / Assigned</p>
-                      <p className="text-sm font-black text-slate-800">{member.poCount}</p>
-                      <p className="text-[9px] text-slate-400 italic mt-1">(Matches in "Request" column)</p>
-                    </div>
-                   </>
-                )}
-
-                {title === 'Designers' && (
+                {title === 'UI/UX' && (
                    <>
                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 text-center col-span-2">
                       <p className="text-[9px] text-slate-400 font-bold uppercase">UX/UI Tasks</p>
@@ -130,19 +129,72 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects }) => {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {renderSection('Product Managers', pmStats, 'bg-blue-600', (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-      ))}
-      
-      {renderSection('Tech Team', techStats, 'bg-slate-700', (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-      ))}
+    <>
+      <div className="space-y-6 animate-fade-in pb-10">
+        {renderSection('Product Managers', pmStats, 'bg-blue-600', (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+        ))}
 
-      {renderSection('Designers', designStats, 'bg-[#9f224e]', (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-      ))}
-    </div>
+        {renderSection('UI/UX', designStats, 'bg-[#9f224e]', (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+        ))}
+      </div>
+
+      {/* MEMBER PROFILE LIGHTBOX */}
+      {selectedMember && MEMBER_PROFILES[selectedMember] && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedMember(null)}>
+          <div 
+            className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-scale-in flex flex-col md:flex-row" 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Image Section */}
+            <div className="w-full md:w-1/3 bg-slate-100 flex items-center justify-center relative min-h-[300px]">
+               {MEMBER_PROFILES[selectedMember].avatar ? (
+                 <img src={MEMBER_PROFILES[selectedMember].avatar} className="absolute inset-0 w-full h-full object-cover" alt={selectedMember} />
+               ) : (
+                 <div className="text-6xl font-black text-slate-300">{selectedMember.substring(0,2)}</div>
+               )}
+            </div>
+
+            {/* Info Section */}
+            <div className="w-full md:w-2/3 p-10 flex flex-col justify-center">
+              <h2 className="text-3xl font-black text-slate-900 mb-6 border-b border-slate-100 pb-4">
+                {MEMBER_PROFILES[selectedMember].fullName}
+              </h2>
+              
+              <div className="space-y-4 text-sm">
+                <div className="flex">
+                  <span className="w-32 font-bold text-slate-400">Ngày sinh:</span>
+                  <span className="font-bold text-slate-800">{MEMBER_PROFILES[selectedMember].dob}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-32 font-bold text-slate-400">Bộ phận:</span>
+                  <span className="font-bold text-slate-800">{MEMBER_PROFILES[selectedMember].department}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-32 font-bold text-slate-400">Vị trí:</span>
+                  <span className="font-black text-[#9f224e]">{MEMBER_PROFILES[selectedMember].position}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-32 font-bold text-slate-400">Email:</span>
+                  <a href={`mailto:${MEMBER_PROFILES[selectedMember].email}`} className="font-bold text-blue-600 hover:underline">{MEMBER_PROFILES[selectedMember].email}</a>
+                </div>
+                <div className="flex">
+                  <span className="w-32 font-bold text-slate-400">Ngày đi làm:</span>
+                  <span className="font-bold text-slate-800">{MEMBER_PROFILES[selectedMember].startDate}</span>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                 <button onClick={() => setSelectedMember(null)} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-colors">
+                    Close Profile
+                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
