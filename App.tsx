@@ -23,7 +23,15 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterDept, setFilterDept] = useState<string>('All');
+  const [filterType, setFilterType] = useState<string>('All');
+  const [filterPM, setFilterPM] = useState<string>('All');
+  const [filterStatus, setFilterStatus] = useState<string>('All');
+  const [filterQuarter, setFilterQuarter] = useState<string>('All');
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -171,7 +179,7 @@ const App: React.FC = () => {
              lowerDesc === 'issue description' || 
              lowerDesc === 'description' || 
              lowerDesc === 'mô tả' || 
-             lowerDesc === 'tên dự án' ||
+             lowerDesc === 'tên dự án' || 
              lowerDesc === 'project name' ||
              lowerCode === 'no' || 
              lowerCode === 'stt' ||
@@ -244,15 +252,42 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, [fetchData]);
 
+  // --- Unique Lists for Filters ---
+  const { uniqueDepts, uniquePMs, uniqueStatuses } = useMemo(() => {
+    const currentProjects = projects.filter(p => p.year === selectedYear);
+    const depts = Array.from(new Set(currentProjects.map(p => p.department))).filter(Boolean).sort();
+    const pms = Array.from(new Set(currentProjects.map(p => p.pm))).filter(Boolean).sort();
+    const statuses = Object.values(ProjectStatus);
+    return { uniqueDepts: depts, uniquePMs: pms, uniqueStatuses: statuses };
+  }, [projects, selectedYear]);
+
+  // --- Filter Logic ---
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => p.year === selectedYear && (
-      p.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.pm.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.designer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.department.toLowerCase().includes(searchQuery.toLowerCase())
-    ));
-  }, [projects, selectedYear, searchQuery]);
+    return projects.filter(p => {
+      // 1. Year Filter
+      if (p.year !== selectedYear) return false;
+
+      // 2. Search Query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matches = 
+          p.description.toLowerCase().includes(q) || 
+          p.code.toLowerCase().includes(q) ||
+          p.pm.toLowerCase().includes(q) ||
+          p.department.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+
+      // 3. Dropdown Filters
+      if (filterDept !== 'All' && p.department !== filterDept) return false;
+      if (filterType !== 'All' && p.type !== filterType) return false;
+      if (filterPM !== 'All' && p.pm !== filterPM) return false;
+      if (filterStatus !== 'All' && p.status !== filterStatus) return false;
+      if (filterQuarter !== 'All' && p.quarter !== parseInt(filterQuarter)) return false;
+
+      return true;
+    });
+  }, [projects, selectedYear, searchQuery, filterDept, filterType, filterPM, filterStatus, filterQuarter]);
 
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,15 +302,13 @@ const App: React.FC = () => {
     
     setProjects(prev => [projectToAdd, ...prev]);
 
-    // 2. Push to Google Sheet if Script URL is configured
+    // 2. Push to Google Sheet
     if (GOOGLE_SCRIPT_URL) {
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors', // Important for sending data to Apps Script Web App without complex CORS headers
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: newProject.code,
             type: newProject.type,
@@ -284,8 +317,6 @@ const App: React.FC = () => {
             pm: newProject.pm
           })
         });
-        
-        // Since 'no-cors' mode is opaque, we assume success if no network error thrown.
         alert('Đã gửi yêu cầu thêm dự án lên Google Sheet thành công! Dữ liệu sẽ xuất hiện sau ít phút.');
       } catch (error) {
         console.error("Failed to push to Google Sheet", error);
@@ -299,11 +330,20 @@ const App: React.FC = () => {
     setIsAddingProject(false);
   };
 
+  const resetFilters = () => {
+    setFilterDept('All');
+    setFilterType('All');
+    setFilterPM('All');
+    setFilterStatus('All');
+    setFilterQuarter('All');
+    setSearchQuery('');
+  };
+
   return (
     <div className="min-h-screen bg-[#0b1121] flex font-sans text-slate-200 selection:bg-[#9f224e] selection:text-white">
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
       
-      <main className="flex-1 ml-64 p-10 relative z-10">
+      <main className="flex-1 ml-64 p-10 relative z-10 transition-all duration-300">
         {/* Ambient Glows */}
         <div className="fixed top-0 left-64 right-0 h-64 bg-gradient-to-b from-[#9f224e]/10 to-transparent pointer-events-none z-0"></div>
         <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-900/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
@@ -377,19 +417,112 @@ const App: React.FC = () => {
             {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} />}
             
             {(activeView === 'projects') && (
-              <div className="space-y-8">
-                 <div className="relative max-w-lg">
-                    <input 
-                      type="text" 
-                      placeholder="Search projects, PM, Department..." 
-                      className="w-full pl-12 pr-4 py-4 bg-[#1e293b]/50 backdrop-blur border border-slate-700 rounded-2xl text-sm outline-none shadow-lg focus:ring-2 focus:ring-[#9f224e] focus:border-transparent text-white placeholder-slate-500 transition-all" 
-                      value={searchQuery} 
-                      onChange={(e) => setSearchQuery(e.target.value)} 
-                    />
-                    <svg className="w-5 h-5 absolute left-4 top-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <div className="space-y-6">
+                 {/* SEARCH & FILTERS CONTAINER */}
+                 <div className="bg-[#1e293b]/40 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 shadow-xl space-y-4">
+                    {/* Search Bar */}
+                    <div className="relative w-full">
+                        <input 
+                          type="text" 
+                          placeholder="Search projects, PM, Department..." 
+                          className="w-full pl-12 pr-4 py-4 bg-[#0f172a] border border-slate-700 rounded-2xl text-sm outline-none shadow-inner focus:ring-2 focus:ring-[#9f224e] focus:border-transparent text-white placeholder-slate-500 transition-all" 
+                          value={searchQuery} 
+                          onChange={(e) => setSearchQuery(e.target.value)} 
+                        />
+                        <svg className="w-5 h-5 absolute left-4 top-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        
+                        {(searchQuery || filterDept !== 'All' || filterPM !== 'All' || filterStatus !== 'All' || filterType !== 'All' || filterQuarter !== 'All') && (
+                          <button 
+                            onClick={resetFilters}
+                            className="absolute right-4 top-3 text-[10px] font-bold text-[#9f224e] hover:text-white uppercase tracking-wider bg-[#9f224e]/10 hover:bg-[#9f224e] px-3 py-1.5 rounded-lg transition-all"
+                          >
+                            Clear Filters
+                          </button>
+                        )}
+                    </div>
+
+                    {/* Filter Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                       {/* Dept Filter */}
+                       <div className="flex flex-col gap-1.5">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Department</label>
+                          <select 
+                            value={filterDept}
+                            onChange={(e) => setFilterDept(e.target.value)}
+                            className="bg-[#1e293b] text-white text-xs font-bold border border-slate-700 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer"
+                          >
+                            <option value="All">All Departments</option>
+                            {uniqueDepts.map(d => <option key={d} value={d}>{d}</option>)}
+                          </select>
+                       </div>
+
+                       {/* Type Filter */}
+                       <div className="flex flex-col gap-1.5">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Type</label>
+                          <select 
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            className="bg-[#1e293b] text-white text-xs font-bold border border-slate-700 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer"
+                          >
+                            <option value="All">All Types</option>
+                            {Object.values(ProjectType).map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                       </div>
+
+                       {/* PM Filter */}
+                       <div className="flex flex-col gap-1.5">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">PM</label>
+                          <select 
+                            value={filterPM}
+                            onChange={(e) => setFilterPM(e.target.value)}
+                            className="bg-[#1e293b] text-white text-xs font-bold border border-slate-700 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer"
+                          >
+                            <option value="All">All PMs</option>
+                            {uniquePMs.map(pm => <option key={pm} value={pm}>{pm}</option>)}
+                          </select>
+                       </div>
+
+                       {/* Status Filter */}
+                       <div className="flex flex-col gap-1.5">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Status</label>
+                          <select 
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="bg-[#1e293b] text-white text-xs font-bold border border-slate-700 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer"
+                          >
+                            <option value="All">All Statuses</option>
+                            {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                       </div>
+
+                        {/* Quarter Filter */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Quarter</label>
+                          <select 
+                            value={filterQuarter}
+                            onChange={(e) => setFilterQuarter(e.target.value)}
+                            className="bg-[#1e293b] text-white text-xs font-bold border border-slate-700 rounded-xl px-3 py-3 outline-none focus:border-[#9f224e] focus:ring-1 focus:ring-[#9f224e] transition-all cursor-pointer"
+                          >
+                            <option value="All">All Quarters</option>
+                            <option value="1">Quarter 1</option>
+                            <option value="2">Quarter 2</option>
+                            <option value="3">Quarter 3</option>
+                            <option value="4">Quarter 4</option>
+                          </select>
+                       </div>
+                    </div>
                  </div>
-                 
-                 <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
+
+                 {/* PROJECT TABLE */}
+                 <div className="relative">
+                    {/* Record count indicator floating above table on desktop, or inline on mobile */}
+                    <div className="flex justify-end mb-2 px-2">
+                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                         Showing {filteredProjects.length} of {projects.filter(p => p.year === selectedYear).length} projects
+                       </span>
+                    </div>
+                    <ProjectTable projects={filteredProjects} onSelectProject={setSelectedProject} />
+                 </div>
               </div>
             )}
             
