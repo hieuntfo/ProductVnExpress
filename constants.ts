@@ -1,9 +1,8 @@
 
 import { Project, ProjectStatus, ProjectType } from './types';
 
-// TODO: Thay thế chuỗi rỗng bên dưới bằng URL từ Google Apps Script Web App của bạn
-// Ví dụ: "https://script.google.com/macros/s/AKfycbx.../exec"
-export const GOOGLE_SCRIPT_URL = ""; 
+// URL Google Apps Script Web App để nhận dữ liệu POST từ form thêm dự án
+export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwPQynE4_zOv-HszHEMPY7qdrK_y81ISRP5Kwc16oWktj3TzPVte_X45U147kYmdDS/exec"; 
 
 export const MOCK_PROJECTS: Project[] = [
   {

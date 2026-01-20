@@ -319,20 +319,20 @@ const App: React.FC = () => {
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
+          mode: 'no-cors', // standard for GAS web apps to avoid CORS errors in browser
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: newProject.code,
-            type: newProject.type,
-            description: newProject.description,
-            department: newProject.department,
-            pm: newProject.pm
+            "project_no": newProject.code,
+            "type": newProject.type,
+            "description": newProject.description,
+            "department": newProject.department,
+            "product_manager": newProject.pm
           })
         });
-        alert('Đã gửi yêu cầu thêm dự án lên Google Sheet thành công! Dữ liệu sẽ xuất hiện sau ít phút.');
+        alert('Đã gửi yêu cầu thêm dự án thành công! Dữ liệu sẽ xuất hiện trên Google Sheet sau ít phút.');
       } catch (error) {
         console.error("Failed to push to Google Sheet", error);
-        alert('Lỗi kết nối tới Google Sheet. Dự án chỉ được lưu tạm thời trên trình duyệt.');
+        alert('Lỗi kết nối tới Google Sheet. Vui lòng thử lại sau.');
       }
     } else {
       alert('Dự án đã được thêm cục bộ. Để lưu vĩnh viễn, hãy cấu hình GOOGLE_SCRIPT_URL trong constants.ts.');
