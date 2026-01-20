@@ -55,6 +55,18 @@ const App: React.FC = () => {
     notes: ''
   });
 
+  // Handle ESC Key to close modals
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedProject(null);
+        setIsAddingProject(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   // --- Normalization Helpers ---
 
   const normalizeStatus = (statusStr: string): ProjectStatus => {
@@ -602,7 +614,10 @@ const App: React.FC = () => {
           <div className="bg-[#1e293b] border border-slate-700 rounded-3xl w-full max-w-2xl shadow-2xl animate-scale-in">
             <div className="p-8 border-b border-slate-700/50 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black text-[#9f224e] uppercase tracking-widest bg-[#9f224e]/10 px-3 py-1 rounded-full border border-[#9f224e]/20">Project Review</span>
+                <div className="flex items-center gap-3">
+                   <span className="text-[10px] font-black text-[#9f224e] uppercase tracking-widest bg-[#9f224e]/10 px-3 py-1 rounded-full border border-[#9f224e]/20">Project Review</span>
+                   <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest hidden md:inline-block">Press ESC to close</span>
+                </div>
                 <h2 className="text-2xl font-black text-white mt-3 leading-tight">{selectedProject.description}</h2>
               </div>
               <button onClick={() => setSelectedProject(null)} className="p-2 hover:bg-slate-800 rounded-full transition-all text-slate-400 hover:text-white">

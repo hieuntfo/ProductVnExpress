@@ -58,7 +58,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
                 </td>
                 <td className="px-6 py-5">
                   <div className="flex flex-col max-w-xs">
-                    <span className="font-bold text-slate-200 leading-tight truncate group-hover:text-[#9f224e] transition-colors" title={project.description}>{project.description}</span>
+                    <button 
+                      onClick={() => onSelectProject(project)}
+                      className="text-left font-bold text-slate-200 leading-tight truncate hover:text-[#9f224e] hover:underline decoration-[#9f224e] decoration-2 underline-offset-4 transition-all focus:outline-none" 
+                      title="Click to view details"
+                    >
+                      {project.description}
+                    </button>
                     <div className="flex gap-2 mt-2 items-center">
                        {getQuarterBadge(project.quarter)}
                        <span className="text-[10px] text-slate-500 italic font-medium truncate">{project.phase}</span>
@@ -98,6 +104,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
                   <button 
                     onClick={() => onSelectProject(project)}
                     className="p-2 text-slate-500 hover:text-white hover:bg-[#9f224e] rounded-xl transition-all shadow-sm border border-transparent hover:shadow-[0_0_15px_rgba(159,34,78,0.5)]"
+                    title="View Details"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
