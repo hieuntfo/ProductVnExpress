@@ -15,8 +15,17 @@ const REFRESH_INTERVAL = 120000; // 2 minutes auto-refresh
 // Cache keys
 const CACHE_KEY_PROJECTS = 'vne_pms_projects';
 const CACHE_KEY_LAST_UPDATED = 'vne_pms_last_updated';
+const SESSION_KEY_AUTH = 'vne_pms_auth_session';
 
 const App: React.FC = () => {
+  // --- Authentication State ---
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem(SESSION_KEY_AUTH) === 'true';
+  });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // --- Main App State ---
   const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'team'>('dashboard');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -67,8 +76,19 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  // --- Normalization Helpers ---
+  // --- Authentication Handler ---
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "123456") {
+      setIsAuthenticated(true);
+      sessionStorage.setItem(SESSION_KEY_AUTH, 'true');
+      setLoginError('');
+    } else {
+      setLoginError('Invalid password. Please try again.');
+    }
+  };
 
+  // --- Normalization Helpers ---
   const normalizeStatus = (statusStr: string): ProjectStatus => {
     const s = (statusStr || '').toLowerCase().trim();
     
@@ -115,6 +135,8 @@ const App: React.FC = () => {
   // --- Data Fetching ---
 
   const fetchData = useCallback(async (isSilent = false) => {
+    if (!isAuthenticated) return; // Do not fetch if not authenticated
+
     if (!isSilent) setIsLoading(true);
     setIsRefreshing(true);
     
@@ -256,13 +278,15 @@ const App: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    fetchData();
-    const timer = setInterval(() => fetchData(true), REFRESH_INTERVAL);
-    return () => clearInterval(timer);
-  }, [fetchData]);
+    if (isAuthenticated) {
+      fetchData();
+      const timer = setInterval(() => fetchData(true), REFRESH_INTERVAL);
+      return () => clearInterval(timer);
+    }
+  }, [fetchData, isAuthenticated]);
 
   // --- Unique Lists for Filters ---
   const { uniqueDepts, uniquePMs, uniqueStatuses } = useMemo(() => {
@@ -351,6 +375,83 @@ const App: React.FC = () => {
     setSearchQuery('');
   };
 
+  // --- RENDER LOGIN VIEW ---
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#151e32] flex items-center justify-center font-sans text-slate-200 relative overflow-hidden">
+        {/* GLOBAL LIGHTING EFFECT - Consistent with Main App */}
+        <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#334155,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
+        <div className="fixed top-0 left-0 right-0 h-96 bg-gradient-to-b from-[#9f224e]/10 to-transparent pointer-events-none z-0"></div>
+        <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+
+        <div className="relative z-10 w-full max-w-md p-6">
+          <div className="bg-[#1e293b]/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-10 shadow-2xl animate-scale-in">
+            <div className="text-center mb-10">
+               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#9f224e] to-[#db2777] rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-[0_0_20px_rgba(159,34,78,0.5)] mb-6">
+                  V
+               </div>
+               <h1 className="text-3xl font-black text-white tracking-tight">VnExpress</h1>
+               <p className="text-[#9f224e] font-bold text-xs uppercase tracking-[0.3em] mt-2">Product Management 2026</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 pl-1">System Password</label>
+                <input 
+                  type="password" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full px-4 py-4 bg-[#0f172a]/60 border border-slate-600/40 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#9f224e] focus:border-transparent transition-all shadow-inner"
+                  placeholder="Enter access code..."
+                  autoFocus
+                />
+                {loginError && (
+                  <p className="text-red-400 text-xs mt-3 flex items-center gap-1 font-bold animate-pulse">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {loginError}
+                  </p>
+                )}
+              </div>
+              
+              <button 
+                type="submit"
+                className="w-full py-4 bg-[#9f224e] hover:bg-[#b92b5b] text-white font-black rounded-xl shadow-[0_4px_15px_rgba(159,34,78,0.4)] hover:shadow-[0_6px_20px_rgba(159,34,78,0.5)] transform active:scale-95 transition-all duration-200 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
+              >
+                Access Dashboard
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </button>
+            </form>
+
+            <div className="mt-10 pt-8 border-t border-slate-700/50 text-center">
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4">Request Access</p>
+              <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-800/50 flex flex-col items-center group hover:border-[#9f224e]/30 transition-colors">
+                 
+                 {/* Admin Avatar Section */}
+                 <div className="relative mb-3">
+                    <img 
+                      src="https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128"
+                      alt="Admin Hieu Nguyen" 
+                      className="w-14 h-14 rounded-full border-2 border-[#9f224e] shadow-[0_0_15px_rgba(159,34,78,0.3)] object-cover"
+                    />
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#1e293b] animate-pulse"></div>
+                 </div>
+
+                 <p className="text-xs font-bold text-white mb-1">Admin: Hieu Nguyen</p>
+                 
+                 <div className="space-y-1">
+                   <p className="text-xs text-slate-400 hover:text-[#9f224e] transition-colors cursor-pointer">nguyenhieu@vnexpress.net</p>
+                   <p className="text-xs text-slate-400">Mobile: 0902423384</p>
+                 </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-slate-600 text-[10px] mt-6 font-medium">© 2026 VnExpress Product & Technology</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER MAIN APP ---
   return (
     <div className="min-h-screen bg-[#151e32] flex font-sans text-slate-200 selection:bg-[#9f224e] selection:text-white relative overflow-hidden">
       {/* GLOBAL LIGHTING EFFECT */}
