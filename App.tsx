@@ -435,8 +435,21 @@ const App: React.FC = () => {
   }, [projects, selectedYear]);
 
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => {
-      if (p.year !== selectedYear) return false;
+    const currentBusinessYear = 2026; // The latest year is considered the "current" year
+
+    // First, determine the base set of projects to show based on the year logic
+    const baseProjects = projects.filter(p => {
+      // Condition 1: The project's year matches the selected year tab. This is the default case.
+      const isProjectInSelectedYear = p.year === selectedYear;
+      
+      // Condition 2: The project is "Re-Open" from a *previous* year, and we are currently viewing the *current* business year.
+      const isReopenedFromPast = p.status === ProjectStatus.RE_OPEN && p.year < selectedYear && selectedYear === currentBusinessYear;
+
+      return isProjectInSelectedYear || isReopenedFromPast;
+    });
+    
+    // Then, apply all the UI filters on this base set
+    return baseProjects.filter(p => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         if (!p.description.toLowerCase().includes(q) && !p.code.toLowerCase().includes(q) && 
@@ -740,7 +753,7 @@ const App: React.FC = () => {
                     <div className="flex justify-end mb-2 px-2">
                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Showing <span className="text-slate-900 dark:text-white">{filteredProjects.length}</span> of {projects.filter(p => p.year === selectedYear).length} projects</span>
                     </div>
-                    <ProjectTable projects={filteredProjects} onSelectProject={(p) => { setSelectedProject(p); setIsEditing(false); }} />
+                    <ProjectTable projects={filteredProjects} selectedYear={selectedYear} onSelectProject={(p) => { setSelectedProject(p); setIsEditing(false); }} />
                  </div>
               </div>
             )}

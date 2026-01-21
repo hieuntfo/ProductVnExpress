@@ -4,10 +4,11 @@ import { Project, ProjectStatus } from '../types';
 
 interface ProjectTableProps {
   projects: Project[];
+  selectedYear: number;
   onSelectProject: (project: Project) => void;
 }
 
-const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }) => {
+const ProjectTable: React.FC<ProjectTableProps> = ({ projects, selectedYear, onSelectProject }) => {
   const getStatusBadge = (status: ProjectStatus) => {
     const styles: Record<ProjectStatus, string> = {
       [ProjectStatus.NOT_STARTED]: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
@@ -60,6 +61,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
                     <button onClick={() => onSelectProject(project)} className="text-left text-[15px] font-bold text-slate-800 dark:text-white leading-tight truncate hover:text-[#9f224e] hover:underline decoration-[#9f224e] decoration-2 underline-offset-4 transition-all focus:outline-none" title="Click to view details">{project.description}</button>
                     <div className="flex gap-2 mt-2 items-center">
                        {getQuarterBadge(project.quarter)}
+                       {project.year !== selectedYear && project.status === ProjectStatus.RE_OPEN && (
+                          <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/50 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-700">
+                            FROM {project.year}
+                          </span>
+                       )}
                        <span className="text-[11px] text-slate-500 dark:text-slate-400 italic font-medium truncate group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{project.phase}</span>
                     </div>
                   </div>
@@ -97,7 +103,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onSelectProject }
                 <td colSpan={7} className="px-6 py-32 text-center text-slate-400 italic font-medium">
                   <div className="flex flex-col items-center gap-4">
                     <svg className="w-16 h-16 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 8-8-8" /></svg>
-                    <span>No projects found for the selected year.</span>
+                    <span>No projects found for the selected filters.</span>
                   </div>
                 </td>
               </tr>
