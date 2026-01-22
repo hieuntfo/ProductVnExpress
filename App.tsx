@@ -314,10 +314,17 @@ const App: React.FC = () => {
       const rows = tsvText.split(/\r?\n/).slice(1); // Skip header
       const parsedDocs: Document[] = rows.map((rowStr, index) => {
         const row = rowStr.split('\t');
+        
+        let description = (row[3] || '');
+        // TSV from Google Sheets quotes cells with newlines. We need to unquote them.
+        if (description.startsWith('"') && description.endsWith('"')) {
+            description = description.substring(1, description.length - 1).replace(/""/g, '"');
+        }
+
         return {
           id: `doc-${index}`,
           name: (row[2] || '').trim(), // Column C for Name
-          description: (row[3] || '').trim(), // Column D for Description
+          description: description.trim(), // Column D for Description
         };
       }).filter(d => d.name); // Ensure doc has a name
       setDocuments(parsedDocs);
