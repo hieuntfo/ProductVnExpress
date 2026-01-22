@@ -33,7 +33,7 @@ const DocumentItem: React.FC<{ document: Document; onSelect: () => void; }> = ({
 
 
 const DocumentHub: React.FC<DocumentHubProps> = ({ documents, onSelectDocument }) => {
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(15);
 
   return (
     <div className="bg-white/80 dark:bg-[#1e293b]/50 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 dark:border-slate-700/50 overflow-hidden animate-fade-in">
@@ -46,19 +46,19 @@ const DocumentHub: React.FC<DocumentHubProps> = ({ documents, onSelectDocument }
           Description
         </div>
       </div>
-      <div>
+      <div className="max-h-[70vh] overflow-y-auto">
         {documents.slice(0, visibleCount).map(doc => (
           <DocumentItem key={doc.id} document={doc} onSelect={() => onSelectDocument(doc)} />
         ))}
-      </div>
-      {visibleCount < documents.length && (
-         <div className="p-4 flex justify-center bg-gradient-to-t from-white/80 dark:from-[#1e293b]/80 to-transparent">
+        {visibleCount < documents.length && (
+         <div className="p-4 flex justify-center bg-gradient-to-t from-white/80 dark:from-[#1e293b]/80 to-transparent sticky bottom-0">
            <button onClick={() => setVisibleCount(c => c + 10)} className="bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-80 transition-opacity shadow-md">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
              See more
            </button>
          </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
