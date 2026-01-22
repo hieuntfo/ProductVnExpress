@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { DEPARTMENTS, TEAM_MEMBERS, MOCK_PROJECTS, GOOGLE_SCRIPT_URL } from './constants';
-import { Project, ProjectStatus, ProjectType } from './types';
+import { DEPARTMENTS, MOCK_PROJECTS, GOOGLE_SCRIPT_URL, MEMBERS_DATA_URL } from './constants';
+import { Project, ProjectStatus, ProjectType, Member } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ProjectTable from './components/ProjectTable';
@@ -117,6 +117,7 @@ const App: React.FC = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'projects' | 'team'>('dashboard');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
@@ -145,9 +146,9 @@ const App: React.FC = () => {
     phase: 'Initialization',
     quarter: 1,
     department: DEPARTMENTS[0],
-    pm: TEAM_MEMBERS[0],
-    po: TEAM_MEMBERS[1],
-    designer: TEAM_MEMBERS[2],
+    pm: '',
+    po: '',
+    designer: '',
     code: '',
     description: '',
     kpi: '',
@@ -294,6 +295,33 @@ const App: React.FC = () => {
   }, [projects]);
 
   // --- Data Fetching ---
+  const fetchMembers = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const response = await fetch(`${MEMBERS_DATA_URL}&t=${Date.now()}`);
+      if (!response.ok) throw new Error("Failed to fetch member data");
+      const tsvText = await response.text();
+      const rows = tsvText.split(/\r?\n/).slice(1); // Skip header
+      const parsedMembers: Member[] = rows.map(rowStr => {
+        const row = rowStr.split('\t');
+        // Column B: Member (short name), Column J: Vị trí (Position)
+        return {
+          name: (row[1] || '').trim(),
+          fullName: (row[2] || '').trim(),
+          dob: (row[3] || '').trim(),
+          department: (row[4] || '').trim(),
+          email: (row[5] || '').trim(),
+          startDate: (row[6] || '').trim(),
+          avatar: (row[7] || `https://ui-avatars.com/api/?name=${encodeURIComponent((row[2] || row[1] || 'VNE').trim())}&background=random&color=fff&size=128`).trim(),
+          position: (row[9] || 'Member').trim(),
+        };
+      }).filter(m => m.name); // Ensure member has a name
+      setMembers(parsedMembers);
+    } catch (error) {
+      console.error("Member data sync error:", error);
+      // Optional: Set some default/mock members on error
+    }
+  }, [isAuthenticated]);
 
   const fetchData = useCallback(async (isSilent = false) => {
     if (!isAuthenticated) return;
@@ -420,19 +448,30 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
-      const timer = setInterval(() => fetchData(true), REFRESH_INTERVAL);
+      fetchMembers();
+      const timer = setInterval(() => {
+        fetchData(true);
+        fetchMembers();
+      }, REFRESH_INTERVAL);
       return () => clearInterval(timer);
     }
-  }, [fetchData, isAuthenticated]);
+  }, [fetchData, fetchMembers, isAuthenticated]);
 
-  const { uniqueDepts, uniquePMs, uniqueStatuses } = useMemo(() => {
+  const { uniqueDepts, uniquePMs, uniqueStatuses, teamMemberNames } = useMemo(() => {
     const currentProjects = projects.filter(p => p.year === selectedYear);
+    const pmsFromMembers = members
+      .filter(m => m.position?.toLowerCase().includes('product'))
+      .map(m => m.name)
+      .filter(Boolean)
+      .sort();
+      
     return { 
       uniqueDepts: Array.from(new Set(currentProjects.map(p => p.department))).filter(Boolean).sort(),
-      uniquePMs: Array.from(new Set(currentProjects.map(p => p.pm))).filter(Boolean).sort(),
-      uniqueStatuses: Object.values(ProjectStatus)
+      uniquePMs: Array.from(new Set(pmsFromMembers)),
+      uniqueStatuses: Object.values(ProjectStatus),
+      teamMemberNames: members.map(m => m.name).sort()
     };
-  }, [projects, selectedYear]);
+  }, [projects, selectedYear, members]);
 
   const filteredProjects = useMemo(() => {
     const currentBusinessYear = 2026; // The latest year is considered the "current" year
@@ -758,7 +797,7 @@ const App: React.FC = () => {
               </div>
             )}
             
-            {activeView === 'team' && <MemberHub projects={projects.filter(p => p.year === selectedYear)} />}
+            {activeView === 'team' && <MemberHub projects={projects.filter(p => p.year === selectedYear)} members={members} />}
           </div>
         )}
       </main>
@@ -801,7 +840,7 @@ const App: React.FC = () => {
                 </div>
                 <div className="col-span-1">
                   <label className="block text-xs font-black text-slate-400 uppercase mb-2">PM</label>
-                  <select className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none" onChange={e => setNewProject({...newProject, pm: e.target.value})}>{TEAM_MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}</select>
+                  <select className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none" onChange={e => setNewProject({...newProject, pm: e.target.value})}>{teamMemberNames.map(m => <option key={m} value={m}>{m}</option>)}</select>
                 </div>
               </div>
               <div className="flex justify-end gap-4 pt-8 border-t border-slate-200 dark:border-slate-700/50">

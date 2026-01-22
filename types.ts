@@ -65,3 +65,14 @@ export interface User {
   role: UserRole;
   avatar: string;
 }
+
+export interface Member {
+  name: string; // From Column B "Member"
+  fullName: string;
+  position: string; // From Column J "Vị trí"
+  dob: string;
+  department: string;
+  email: string;
+  startDate: string;
+  avatar: string;
+}

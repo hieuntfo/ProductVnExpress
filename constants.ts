@@ -4,6 +4,9 @@ import { Project, ProjectStatus, ProjectType } from './types';
 // URL Google Apps Script Web App để nhận dữ liệu POST từ form thêm dự án
 export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwPQynE4_zOv-HszHEMPY7qdrK_y81ISRP5Kwc16oWktj3TzPVte_X45U147kYmdDS/exec"; 
 
+// URL for the new "Product" sheet containing member data
+export const MEMBERS_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?gid=510949333&output=tsv";
+
 export const MOCK_PROJECTS: Project[] = [
   {
     id: '1',
@@ -30,57 +33,3 @@ export const DEPARTMENTS = [
   'Sản phẩm', 'Công nghệ', 'Xe', 'Thể thao', 'Giáo dục', 
   'Pháp luật', 'Kinh doanh', 'Đời sống', 'Du lịch', 'Số hóa'
 ];
-
-export const PRODUCT_MANAGERS = [
-  'NgocDT', 
-  'HieuNT', 
-  'AnhTH'
-];
-
-export const TECH_TEAM = [
-  'TrangNT', 
-  'NhuanTP', 
-  'LinhNTN', 
-  'NgocNV', 
-  'BinhVH', 
-  'VietLX', 
-  'ThaoPP'
-];
-
-// Extracted from Sheet Data observed (UX/UI Column)
-export const DESIGNERS = [
-  'SonLH', 'TrungTD', 'TungTD', 'DatNH', 'NamNH', 'SonVN'
-];
-
-// Combined list for general dropdowns
-export const TEAM_MEMBERS = [
-  ...PRODUCT_MANAGERS,
-  ...TECH_TEAM,
-  ...DESIGNERS,
-  'Chị Thanh Vân', 'Anh Minh Kha', 'Chị Thanh Hải', 'Anh Lê' // Common POs/Requesters
-];
-
-// Specific Profile Data
-export const MEMBER_PROFILES: Record<string, {
-  fullName: string;
-  dob: string;
-  department: string;
-  position: string;
-  email: string;
-  startDate: string;
-  avatar?: string;
-}> = {
-  'TungTD': {
-    fullName: 'Trần Duy Tùng',
-    dob: '08/10/1992',
-    department: 'Phòng Sản phẩm - VnExpress',
-    position: 'UI Designer',
-    email: 'tungtd10@fpt.com.vn',
-    startDate: '16/10/2017',
-    // Using a placeholder that resembles a professional profile or the uploaded image context if available
-    avatar: 'https://ui-avatars.com/api/?name=Tran+Duy+Tung&background=1e1e1e&color=fff&size=512' 
-  }
-};
-
-// Legacy exports
-export const PMS = PRODUCT_MANAGERS;
