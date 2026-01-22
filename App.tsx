@@ -307,15 +307,18 @@ const App: React.FC = () => {
       const rows = tsvText.split(/\r?\n/).slice(1); // Skip header
       const parsedMembers: Member[] = rows.map(rowStr => {
         const row = rowStr.split('\t');
-        // Column mapping based on the provided screenshot
+        const name = (row[1] || '').trim();
+        const fullName = (row[2] || '').trim();
+        const avatarFromSheet = (row[8] || '').trim();
+        
         return {
-          name: (row[1] || '').trim(),       // B: Member
-          fullName: (row[2] || '').trim(), // C: Name
-          dob: (row[3] || '').trim(),       // D: Date
-          email: (row[5] || '').trim(),      // F: Mail
-          startDate: (row[6] || '').trim(),  // G: Startdate
-          avatar: (row[8] || `https://ui-avatars.com/api/?name=${encodeURIComponent((row[2] || row[1] || 'VNE').trim())}&background=random&color=fff&size=128`).trim(), // I: Avatar
-          position: (row[9] || 'Member').trim(), // J: Job
+          name: name,
+          fullName: fullName,
+          dob: (row[3] || '').trim(),
+          email: (row[5] || '').trim(),
+          startDate: (row[6] || '').trim(),
+          avatar: avatarFromSheet || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || fullName || 'VNE')}&length=1&background=random&color=fff&size=128`,
+          position: (row[9] || 'Member').trim(),
         };
       }).filter(m => m.name); // Ensure member has a name
       setMembers(parsedMembers);

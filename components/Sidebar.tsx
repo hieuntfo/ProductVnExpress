@@ -23,9 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, u
   ];
 
   // Generate avatar based on dynamic userName
-  const avatarUrl = isAdmin 
-    ? "https://ui-avatars.com/api/?name=Hieu+Nguyen&background=9f224e&color=fff&size=128"
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random&color=fff&size=128`;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&length=1&background=${isAdmin ? '9f224e' : 'random'}&color=fff&size=128`;
 
   return (
     <div className="w-64 bg-white dark:bg-[#111827] text-slate-800 dark:text-white flex flex-col h-screen fixed left-0 top-0 border-r border-slate-200 dark:border-slate-700/50 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-colors duration-300">
