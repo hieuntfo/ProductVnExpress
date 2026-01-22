@@ -38,23 +38,6 @@ export interface Project {
   notes?: string;
 }
 
-// FIX: Add missing BacklogItem interface, which was causing an import error.
-export interface BacklogItem {
-  id: string;
-  description: string;
-  status: string;
-  code?: string;
-  priority?: string;
-  quarter?: number;
-  type?: string;
-  department?: string;
-  pm?: string;
-  designer?: string;
-  releaseDate?: string;
-  po?: string;
-  notes?: string;
-}
-
 export enum UserRole {
   MEMBER = 'Member',
   EDITOR = 'Editor',
