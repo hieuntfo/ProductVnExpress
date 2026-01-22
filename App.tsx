@@ -304,16 +304,15 @@ const App: React.FC = () => {
       const rows = tsvText.split(/\r?\n/).slice(1); // Skip header
       const parsedMembers: Member[] = rows.map(rowStr => {
         const row = rowStr.split('\t');
-        // Column B: Member (short name), Column J: Vị trí (Position)
+        // Column mapping based on the provided screenshot
         return {
-          name: (row[1] || '').trim(),
-          fullName: (row[2] || '').trim(),
-          dob: (row[3] || '').trim(),
-          department: (row[4] || '').trim(),
-          email: (row[5] || '').trim(),
-          startDate: (row[6] || '').trim(),
-          avatar: (row[7] || `https://ui-avatars.com/api/?name=${encodeURIComponent((row[2] || row[1] || 'VNE').trim())}&background=random&color=fff&size=128`).trim(),
-          position: (row[9] || 'Member').trim(),
+          name: (row[1] || '').trim(),       // B: Member
+          fullName: (row[2] || '').trim(), // C: Name
+          dob: (row[3] || '').trim(),       // D: Date
+          email: (row[5] || '').trim(),      // F: Mail
+          startDate: (row[6] || '').trim(),  // G: Startdate
+          avatar: (row[8] || `https://ui-avatars.com/api/?name=${encodeURIComponent((row[2] || row[1] || 'VNE').trim())}&background=random&color=fff&size=128`).trim(), // I: Avatar
+          position: (row[9] || 'Member').trim(), // J: Job
         };
       }).filter(m => m.name); // Ensure member has a name
       setMembers(parsedMembers);
@@ -460,7 +459,7 @@ const App: React.FC = () => {
   const { uniqueDepts, uniquePMs, uniqueStatuses, teamMemberNames } = useMemo(() => {
     const currentProjects = projects.filter(p => p.year === selectedYear);
     const pmsFromMembers = members
-      .filter(m => m.position?.toLowerCase().includes('product'))
+      .filter(m => m.position?.toLowerCase().includes('product') || m.position?.toLowerCase().includes('leader'))
       .map(m => m.name)
       .filter(Boolean)
       .sort();

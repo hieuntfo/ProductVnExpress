@@ -68,11 +68,10 @@ export interface User {
 
 export interface Member {
   name: string; // From Column B "Member"
-  fullName: string;
-  position: string; // From Column J "Vị trí"
-  dob: string;
-  department: string;
-  email: string;
-  startDate: string;
-  avatar: string;
+  fullName: string; // From Column C "Name"
+  position: string; // From Column J "Job"
+  dob: string; // From Column D "Date"
+  email: string; // From Column F "Mail"
+  startDate: string; // From Column G "Startdate"
+  avatar: string; // From Column I "Avatar"
 }
