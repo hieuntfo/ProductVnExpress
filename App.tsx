@@ -316,8 +316,8 @@ const App: React.FC = () => {
         const row = rowStr.split('\t');
         return {
           id: `doc-${index}`,
-          name: (row[2] || '').trim(),
-          description: (row[3] || '').trim(),
+          name: (row[2] || '').trim(), // Column C for Name
+          description: (row[3] || '').trim(), // Column D for Description
         };
       }).filter(d => d.name); // Ensure doc has a name
       setDocuments(parsedDocs);
@@ -775,7 +775,7 @@ const App: React.FC = () => {
                )}
             </button>
 
-            <button onClick={() => fetchData()} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 hover:shadow-md ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
+            <button onClick={() => { fetchData(false); fetchMembers(); fetchDocuments(); }} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 hover:shadow-md ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
               <svg className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
             <button 
@@ -984,7 +984,7 @@ const App: React.FC = () => {
                       <input 
                         type="text" 
                         value={editFormData.kpi} 
-                        onChange={(e) => setEditFormData({...editFormData, kpi: e.target.value()})}
+                        onChange={(e) => setEditFormData({...editFormData, kpi: e.target.value})}
                         className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#9f224e] outline-none"
                         placeholder="e.g. 1M Pageviews"
                       />
