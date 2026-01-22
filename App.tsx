@@ -301,6 +301,9 @@ const App: React.FC = () => {
       const response = await fetch(`${MEMBERS_DATA_URL}&t=${Date.now()}`);
       if (!response.ok) throw new Error("Failed to fetch member data");
       const tsvText = await response.text();
+      if (tsvText.trim().startsWith('<') || tsvText.includes('<!DOCTYPE html')) {
+          throw new Error("Received HTML instead of TSV for members. Check sheet URL/publishing settings.");
+      }
       const rows = tsvText.split(/\r?\n/).slice(1); // Skip header
       const parsedMembers: Member[] = rows.map(rowStr => {
         const row = rowStr.split('\t');
@@ -318,7 +321,6 @@ const App: React.FC = () => {
       setMembers(parsedMembers);
     } catch (error) {
       console.error("Member data sync error:", error);
-      // Optional: Set some default/mock members on error
     }
   }, [isAuthenticated]);
 
@@ -692,19 +694,30 @@ const App: React.FC = () => {
             
             <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-sm">
               {activeView === 'dashboard' ? `Report ${selectedYear}` : 
-               activeView === 'projects' ? 'Project Plan' : 'Member Hub'}
+               activeView === 'projects' ? 'Project Plan' : 
+               'Member Hub'}
             </h1>
             
             <div className="flex items-center gap-6 mt-6">
-              <div className="flex bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 p-1 rounded-xl inline-flex shadow-sm">
-                {[2025, 2026].map(yr => (
-                  <button key={yr} onClick={() => setSelectedYear(yr)} className={`px-8 py-2 text-xs font-black rounded-lg transition-all ${selectedYear === yr ? 'bg-[#9f224e] text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/30'}`}>{yr}</button>
-                ))}
-              </div>
-              <div className="flex flex-col border-l border-slate-300 dark:border-slate-700/50 pl-6">
-                  <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Projects</span>
-                  <span className="text-sm font-black text-slate-900 dark:text-white">{projects.filter(p => p.year === selectedYear).length} <span className="text-slate-500 dark:text-slate-400 text-xs font-normal">Records</span></span>
-              </div>
+              {['dashboard', 'projects'].includes(activeView) && (
+                <>
+                  <div className="flex bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 p-1 rounded-xl inline-flex shadow-sm">
+                    {[2025, 2026].map(yr => (
+                      <button key={yr} onClick={() => setSelectedYear(yr)} className={`px-8 py-2 text-xs font-black rounded-lg transition-all ${selectedYear === yr ? 'bg-[#9f224e] text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/30'}`}>{yr}</button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col border-l border-slate-300 dark:border-slate-700/50 pl-6">
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Projects</span>
+                      <span className="text-sm font-black text-slate-900 dark:text-white">{projects.filter(p => p.year === selectedYear).length} <span className="text-slate-500 dark:text-slate-400 text-xs font-normal">Records</span></span>
+                  </div>
+                </>
+              )}
+              {activeView === 'team' && (
+                  <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Members</span>
+                      <span className="text-sm font-black text-slate-900 dark:text-white">{members.length} <span className="text-slate-500 dark:text-slate-400 text-xs font-normal">Records</span></span>
+                  </div>
+              )}
             </div>
           </div>
           
@@ -748,7 +761,7 @@ const App: React.FC = () => {
           <div className="animate-fade-in relative z-10">
             {activeView === 'dashboard' && <Dashboard projects={projects.filter(p => p.year === selectedYear)} />}
             
-            {(activeView === 'projects') && (
+            {activeView === 'projects' && (
               <div className="space-y-8">
                  {/* SEARCH & FILTERS CONTAINER - STICKY */}
                  <div className="sticky top-0 z-30 bg-white/80 dark:bg-[#0b1121]/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-6 shadow-[0_4px_30px_-4px_rgba(0,0,0,0.05)] space-y-4 hover:bg-white/95 dark:hover:bg-[#0b1121]/95 transition-all duration-300">
@@ -797,6 +810,7 @@ const App: React.FC = () => {
             )}
             
             {activeView === 'team' && <MemberHub projects={projects.filter(p => p.year === selectedYear)} members={members} />}
+
           </div>
         )}
       </main>

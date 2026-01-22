@@ -38,19 +38,20 @@ export interface Project {
   notes?: string;
 }
 
+// FIX: Add missing BacklogItem interface to resolve import error in components/BacklogList.tsx.
 export interface BacklogItem {
   id: string;
-  code: string;
   description: string;
-  priority: string;
-  quarter: number;
   status: string;
-  type: string;
-  department: string;
-  pm: string;
-  designer: string;
-  releaseDate: string;
-  po: string;
+  code?: string;
+  priority?: string;
+  quarter?: number;
+  type?: string;
+  department?: string;
+  pm?: string;
+  designer?: string;
+  releaseDate?: string;
+  po?: string;
   notes?: string;
 }
 

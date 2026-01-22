@@ -4,8 +4,8 @@ import { Project, ProjectStatus, ProjectType } from './types';
 // URL Google Apps Script Web App để nhận dữ liệu POST từ form thêm dự án
 export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwPQynE4_zOv-HszHEMPY7qdrK_y81ISRP5Kwc16oWktj3TzPVte_X45U147kYmdDS/exec"; 
 
-// URL for the new "Product" sheet containing member data
-export const MEMBERS_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?gid=510949333&output=tsv";
+// URL for the new "Member" sheet containing member data. GID changed to 1593539266 as requested.
+export const MEMBERS_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJJ2HYdVoZ45yKhXPX8kydfkXB6eHebun5TNJlcMIFTtbYncCx8Nuq1sphQE0yeB1M9w_aC_QCzB2g/pub?gid=1593539266&single=true&output=tsv";
 
 export const MOCK_PROJECTS: Project[] = [
   {
