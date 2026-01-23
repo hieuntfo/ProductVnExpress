@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { DEPARTMENTS, MOCK_PROJECTS, GOOGLE_SCRIPT_URL, MEMBERS_DATA_URL, DOCUMENTS_DATA_URL } from './constants';
 import { Project, ProjectStatus, ProjectType, Member, MemberWithStats, Document } from './types';
 import Sidebar from './components/Sidebar';
@@ -21,6 +21,12 @@ const SESSION_KEY_AUTH = 'vne_pms_auth_session';
 const SESSION_KEY_ROLE = 'vne_pms_role';
 const SESSION_KEY_TIMESTAMP = 'vne_pms_timestamp';
 const SESSION_KEY_USER_NAME = 'vne_pms_username'; // New key for user display name
+
+const LoginKeyVisual = () => (
+  <div className="login-keyvisual-container" aria-hidden="true">
+    <div className="login-glow-overlay"></div>
+  </div>
+);
 
 const App: React.FC = () => {
   // --- Theme State (Auto-VN Time) ---
@@ -95,6 +101,39 @@ const App: React.FC = () => {
   const [loginTab, setLoginTab] = useState<'user' | 'admin'>('user');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
+  
+  // --- UI Effects for Auth State ---
+  useEffect(() => {
+    // This hook now only manages the body class for contextual styling.
+    if (!isAuthenticated) {
+        document.body.classList.add('login-active');
+    } else {
+        document.body.classList.remove('login-active');
+    }
+  }, [isAuthenticated]);
+
+  // --- Login Screen 3D Tilt Effect State ---
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardStyle, setCardStyle] = useState({});
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = cardRef.current.getBoundingClientRect();
+    const x = (clientX - left - width / 2) / 35; // rotation sensitivity
+    const y = (clientY - top - height / 2) / -35; // invert for natural feel
+    setCardStyle({
+      transform: `perspective(1000px) rotateY(${x}deg) rotateX(${y}deg) scale(1.02)`,
+      transition: 'transform 0.1s ease-out'
+    });
+  };
+  
+  const handleMouseLeave = () => {
+    setCardStyle({
+      transform: 'perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1)',
+      transition: 'transform 0.5s ease-in-out'
+    });
+  };
 
   // --- Active Users Simulation (Admin Only) ---
   const [activeUserCount, setActiveUserCount] = useState(12); // Initial fake count
@@ -618,75 +657,83 @@ const App: React.FC = () => {
   // --- RENDER LOGIN VIEW ---
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-100 dark:bg-[#0b1121] flex items-center justify-center p-4 font-sans text-slate-800 dark:text-slate-200 relative transition-colors duration-700 overflow-hidden">
-        {/* Animated Aurora Background */}
-        <div className="absolute top-0 left-0 w-full h-full z-0">
-            <div className="animate-aurora absolute -top-1/4 -left-1/4 w-full h-full bg-gradient-to-r from-vne-primary via-purple-500 to-cyan-500 rounded-full filter blur-3xl opacity-50 dark:opacity-30"></div>
-            <div className="animate-aurora animation-delay-2000 absolute -bottom-1/4 -right-1/4 w-3/4 h-3/4 bg-gradient-to-r from-vne-secondary to-pink-500 rounded-full filter blur-3xl opacity-50 dark:opacity-20"></div>
-            <div className="animate-aurora animation-delay-4000 absolute bottom-1/4 left-0 w-1/2 h-1/2 bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full filter blur-3xl opacity-50 dark:opacity-20"></div>
-        </div>
-        
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-800 dark:text-slate-200 relative transition-colors duration-700 overflow-hidden"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <LoginKeyVisual />
         <div className="relative z-10 w-full max-w-md">
-            <div className="bg-white/20 dark:bg-slate-900/30 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-500/10 dark:shadow-black/50 animate-scale-in">
-                <div className="text-center mb-10">
-                    <div className="inline-block relative mb-6 group">
-                        <div className="absolute -inset-1.5 bg-gradient-to-br from-vne-primary to-purple-600 rounded-3xl blur-lg opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                        <div className="relative mx-auto w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center font-black text-6xl shadow-lg">
-                           <span className="bg-clip-text text-transparent bg-gradient-to-br from-vne-primary to-purple-600">P</span>
-                        </div>
+           <div
+             ref={cardRef}
+             style={cardStyle}
+             className="relative transition-transform duration-300 ease-out"
+           >
+              <div className="corner corner-tl"></div>
+              <div className="corner corner-tr"></div>
+              <div className="corner corner-bl"></div>
+              <div className="corner corner-br"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-vne-primary to-purple-600 rounded-[2.5rem] blur-lg animate-glow-pulse"></div>
+              <div className="relative bg-white/10 dark:bg-slate-900/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/40 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-500/10 dark:shadow-black/50 animate-scale-in">
+                  <div className="text-center mb-10">
+                      <div className="inline-block relative mb-6 group">
+                          <div className="relative mx-auto w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center font-black text-6xl shadow-lg">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-vne-primary to-purple-600 drop-shadow-[0_0_10px_rgba(219,39,119,0.8)]">P</span>
+                          </div>
+                      </div>
+                      <h1 className="text-3xl font-black text-white tracking-tight relative glitch" data-text="VnExpress">VnExpress</h1>
+                      <p className="text-vne-primary dark:text-vne-secondary font-bold text-xs uppercase tracking-widest mt-2 animate-typing font-mono">Product Management 2026</p>
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="bg-slate-100/10 dark:bg-slate-800/20 p-1.5 rounded-xl flex relative mb-6 backdrop-blur-sm border border-white/10 dark:border-slate-700/30">
+                      <button 
+                          type="button" 
+                          onClick={() => { setLoginTab('user'); setPasswordInput(''); setLoginError(''); }}
+                          className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'user' ? 'bg-white/80 dark:bg-vne-primary text-slate-900 dark:text-white shadow-md' : 'text-slate-300 dark:text-slate-400 hover:text-white'}`}
+                      >
+                        User
+                      </button>
+                      <button 
+                          type="button" 
+                          onClick={() => { setLoginTab('admin'); setPasswordInput(''); setLoginError(''); }}
+                          className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'admin' ? 'bg-white/80 dark:bg-vne-primary text-slate-900 dark:text-white shadow-md' : 'text-slate-300 dark:text-slate-400 hover:text-white'}`}
+                      >
+                        Admin
+                      </button>
                     </div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">VnExpress</h1>
-                    <p className="text-vne-primary dark:text-vne-secondary font-bold text-xs uppercase tracking-[0.3em] mt-2">Product Management 2026</p>
-                </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
-                  <div className="bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-xl flex relative mb-6 backdrop-blur-sm border border-white/20 dark:border-slate-700/30">
-                     <button 
-                        type="button" 
-                        onClick={() => { setLoginTab('user'); setPasswordInput(''); setLoginError(''); }}
-                        className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'user' ? 'bg-white dark:bg-vne-primary text-slate-900 dark:text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}
-                     >
-                       User
-                     </button>
-                     <button 
-                        type="button" 
-                        onClick={() => { setLoginTab('admin'); setPasswordInput(''); setLoginError(''); }}
-                        className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all z-10 ${loginTab === 'admin' ? 'bg-white dark:bg-vne-primary text-slate-900 dark:text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}
-                     >
-                       Admin
-                     </button>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 pl-1">
-                      {loginTab === 'user' ? 'Member Password' : 'Administrator Key'}
-                    </label>
-                    <input 
-                      type="password" 
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      className="w-full px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50 border border-white/30 dark:border-slate-600/40 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-vne-primary focus:border-transparent transition-all shadow-inner font-bold tracking-widest"
-                      placeholder="••••••"
-                      autoFocus
-                    />
-                    {loginError && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-3 flex items-center gap-1 font-bold animate-pulse">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {loginError}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <button 
-                    type="submit"
-                    className="w-full py-4 bg-gradient-to-br from-vne-primary to-vne-secondary text-white font-black rounded-xl shadow-lg shadow-vne-primary/20 hover:shadow-xl hover:shadow-vne-primary/40 transform active:scale-95 transition-all duration-300 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
-                  >
-                    {loginTab === 'user' ? 'Access Dashboard' : 'Admin Console'}
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                  </button>
-                </form>
+                    <div>
+                      <label className="block text-xs font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2 pl-1">
+                        {loginTab === 'user' ? 'Member Password' : 'Administrator Key'}
+                      </label>
+                      <input 
+                        type="password" 
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        className="w-full px-4 py-4 bg-slate-50/10 dark:bg-slate-900/30 border border-white/20 dark:border-slate-600/40 rounded-xl text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-vne-primary focus:border-transparent transition-all shadow-inner font-bold tracking-widest"
+                        placeholder="••••••"
+                        autoFocus
+                      />
+                      {loginError && (
+                        <p className="text-red-400 text-xs mt-3 flex items-center gap-1 font-bold animate-pulse">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          {loginError}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <button 
+                      type="submit"
+                      className="w-full py-4 bg-gradient-to-br from-vne-primary to-vne-secondary text-white font-black rounded-xl shadow-lg shadow-vne-primary/20 hover:shadow-xl hover:shadow-vne-primary/40 transform active:scale-95 transition-all duration-300 uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
+                    >
+                      {loginTab === 'user' ? 'Access Dashboard' : 'Admin Console'}
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                  </form>
+              </div>
             </div>
-            <div className="text-center text-slate-500 dark:text-slate-600 text-xs mt-8 font-medium leading-relaxed">
+            <div className="text-center text-slate-600 text-xs mt-8 font-medium leading-relaxed">
               <p>© 2026 VnExpress Product</p>
               <p className="mt-1">
                 Admin: Hiếu Nguyễn - 0902423384 | Email: <a href="mailto:nguyenhieu@vnexpress.net" className="hover:text-vne-primary transition-colors">nguyenhieu@vnexpress.net</a>
@@ -700,7 +747,6 @@ const App: React.FC = () => {
   // --- RENDER MAIN APP ---
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1121] flex font-sans text-slate-800 dark:text-slate-200 selection:bg-[#9f224e] selection:text-white relative overflow-hidden transition-colors duration-700">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,#e2e8f0,transparent_70%)] dark:bg-[radial-gradient(circle_at_50%_-20%,#1e293b,transparent_70%)] opacity-40 pointer-events-none z-0"></div>
       
       <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={isAdmin} userName={userName} onLogout={handleLogout} />
       
@@ -1069,18 +1115,6 @@ const App: React.FC = () => {
         @keyframes scale-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
         .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.2, 0, 0, 1); }
         .animate-scale-in { animation: scale-in 0.5s cubic-bezier(0.2, 0, 0, 1); }
-        .animate-slide-in { animation: slide-in 0.5s cubic-bezier(0.2, 0, 0, 1); }
-        @keyframes slide-in { 0% { transform: translateX(100%); } 100% { transform: translateX(0); } }
-        
-        @keyframes aurora {
-          0% { transform: translate(-20%, -20%) rotate(0deg) scale(1); }
-          50% { transform: translate(20%, 20%) rotate(180deg) scale(1.2); }
-          100% { transform: translate(-20%, -20%) rotate(360deg) scale(1); }
-        }
-        .animate-aurora { animation: aurora 30s infinite linear; }
-        .animation-delay-2000 { animation-delay: -15s; }
-        .animation-delay-4000 { animation-delay: -25s; }
-
       `}</style>
     </div>
   );
