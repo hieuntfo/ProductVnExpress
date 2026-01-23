@@ -669,10 +669,6 @@ const App: React.FC = () => {
              style={cardStyle}
              className="relative transition-transform duration-300 ease-out"
            >
-              <div className="corner corner-tl"></div>
-              <div className="corner corner-tr"></div>
-              <div className="corner corner-bl"></div>
-              <div className="corner corner-br"></div>
               <div className="absolute -inset-1 bg-gradient-to-r from-vne-primary to-vne-primary rounded-[2.5rem] blur-lg animate-glow-pulse"></div>
               <div className="relative bg-white/30 dark:bg-slate-900/60 backdrop-blur-2xl border border-white/20 dark:border-slate-700/40 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-500/10 dark:shadow-black/50 animate-scale-in">
                   <div className="text-center mb-10">

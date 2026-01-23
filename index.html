@@ -124,24 +124,6 @@
 
 
       /* --- LOGIN FORM EFFECTS --- */
-      @keyframes corner-pulse {
-        0%, 100% { box-shadow: 0 0 8px 0px rgba(159, 34, 78, 0.8); }
-        50% { box-shadow: 0 0 16px 2px rgba(159, 34, 78, 1); }
-      }
-      .corner {
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        border-style: solid;
-        border-color: #9f224e;
-        z-index: 2;
-        animation: corner-pulse 2.5s infinite ease-in-out;
-      }
-      .corner-tl { top: 12px; left: 12px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-      .corner-tr { top: 12px; right: 12px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-      .corner-bl { bottom: 12px; left: 12px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-      .corner-br { bottom: 12px; right: 12px; border-width: 0 0 3px 3px; border-radius: 0 0 4px 0; }
-
       @keyframes typing {
         from { width: 0 }
         to { width: 100% }
