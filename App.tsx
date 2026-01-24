@@ -558,8 +558,8 @@ const App: React.FC = () => {
 
   const handleAddDocument = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDocumentData.name) {
-        alert("Vui lòng điền tên tài liệu.");
+    if (!newDocumentData.name || !newDocumentData.description) {
+        alert("Vui lòng điền đầy đủ Tên và Mô tả cho tài liệu.");
         return;
     }
     setIsSubmittingDoc(true);
