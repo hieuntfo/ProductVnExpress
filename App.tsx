@@ -584,7 +584,7 @@ const App: React.FC = () => {
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'addDocument',
+                    action: 'add_document',
                     name: newDocumentData.name,
                     description: descriptionContent
                 })
