@@ -836,8 +836,9 @@ const App: React.FC = () => {
               </div>
            </div>
            
-           <div className="mt-16 text-center text-slate-600 text-[10px] font-bold uppercase tracking-[0.3em] space-y-2 opacity-50">
+           <div className="mt-16 text-center text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em] space-y-3 opacity-70">
               <p>© 2026 VnExpress ProductHub System</p>
+              <p className="normal-case tracking-normal">nguyenhieu@vnexpress.net | 0902423384</p>
               <div className="flex items-center justify-center gap-4">
                  <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Signal Active</span>
                  <span className="w-[1px] h-3 bg-slate-800"></span>
