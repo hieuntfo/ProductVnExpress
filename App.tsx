@@ -148,6 +148,11 @@ const App: React.FC = () => {
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // States for new document modal
+  const [isAddingDocument, setIsAddingDocument] = useState(false);
+  const [isSubmittingDoc, setIsSubmittingDoc] = useState(false);
+  const [newDocumentData, setNewDocumentData] = useState({ name: '', description: '' });
+
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Project>>({});
 
@@ -174,6 +179,7 @@ const App: React.FC = () => {
       if (e.key === 'Escape') {
         setSelectedProject(null);
         setIsAddingProject(false);
+        setIsAddingDocument(false);
         setIsEditing(false);
         setSelectedMember(null);
         setSelectedDocument(null);
@@ -550,6 +556,31 @@ const App: React.FC = () => {
     setIsSubmitting(false); setIsAddingProject(false);
   };
 
+  const handleAddDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDocumentData.name || !newDocumentData.description) {
+      alert("Vui lòng điền đầy đủ tên và mô tả tài liệu.");
+      return;
+    }
+    setIsSubmittingDoc(true);
+
+    const docToAdd: Document = {
+      id: `local-doc-${Date.now()}`,
+      name: newDocumentData.name,
+      description: newDocumentData.description,
+    };
+
+    setDocuments(prev => [docToAdd, ...prev]);
+
+    await new Promise(res => setTimeout(res, 500));
+    alert('Đã thêm tài liệu mới thành công (lưu cục bộ).');
+
+    setIsSubmittingDoc(false);
+    setIsAddingDocument(false);
+    setNewDocumentData({ name: '', description: '' });
+  };
+
+
   const handleUpdateProject = async () => {
     if (!selectedProject || !isEditing) return;
     setIsSubmitting(true);
@@ -747,10 +778,18 @@ const App: React.FC = () => {
             <button onClick={() => { fetchData(false); fetchMembers(); fetchDocuments(); }} disabled={isRefreshing} className={`p-4 bg-white/50 dark:bg-[#1e293b]/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-[#9f224e] transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 hover:shadow-md ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`} title="Force Refresh">
               <svg className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
-            <button onClick={() => { setNewProject(prev => ({ ...prev, code: getNextProjectCode() })); setIsAddingProject(true); }} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_10px_20px_rgba(159,34,78,0.3)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-              NEW PROJECT
-            </button>
+            {['dashboard', 'projects'].includes(activeView) && (
+              <button onClick={() => { setNewProject(prev => ({ ...prev, code: getNextProjectCode() })); setIsAddingProject(true); }} className="bg-gradient-to-r from-[#9f224e] to-[#db2777] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_10px_20px_rgba(159,34,78,0.3)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                NEW PROJECT
+              </button>
+            )}
+             {activeView === 'document' && (
+              <button onClick={() => setIsAddingDocument(true)} className="bg-gradient-to-r from-sky-600 to-cyan-600 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-[0_10px_20px_rgba(8,145,178,0.3)] flex items-center gap-2 hover:brightness-110 hover:-translate-y-1 transition-all transform active:scale-95 active:translate-y-0 border border-white/10">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2-2z"></path></svg>
+                NEW DOCUMENT
+              </button>
+            )}
           </div>
         </header>
 
@@ -978,6 +1017,51 @@ const App: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {isAddingDocument && (
+        <div className="fixed inset-0 bg-slate-900/50 dark:bg-black/90 backdrop-blur-md z-[999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <div className="p-8 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between sticky top-0 bg-white dark:bg-[#1e293b] z-10">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">Create New Document</h2>
+              <button onClick={() => setIsAddingDocument(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleAddDocument} className="p-8 space-y-6">
+              <div>
+                <label htmlFor="doc_name" className="block text-xs font-black text-slate-400 uppercase mb-2">Document Name</label>
+                <input
+                  id="doc_name"
+                  required
+                  type="text"
+                  value={newDocumentData.name}
+                  onChange={e => setNewDocumentData({ ...newDocumentData, name: e.target.value })}
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#9f224e] outline-none transition-all"
+                  placeholder="e.g., Product Requirement Document (PRD) for..."
+                />
+              </div>
+              <div>
+                <label htmlFor="doc_desc" className="block text-xs font-black text-slate-400 uppercase mb-2">Description / Content</label>
+                <textarea
+                  id="doc_desc"
+                  required
+                  value={newDocumentData.description}
+                  onChange={e => setNewDocumentData({ ...newDocumentData, description: e.target.value })}
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-[#9f224e] outline-none transition-all resize-y"
+                  placeholder="Provide the full content or a detailed description of the document."
+                  rows={10}
+                />
+              </div>
+              <div className="flex justify-end gap-4 pt-8 border-t border-slate-200 dark:border-slate-700/50">
+                <button type="button" onClick={() => setIsAddingDocument(false)} className="px-6 py-3 font-black text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">CANCEL</button>
+                <button type="submit" disabled={isSubmittingDoc} className="px-10 py-3 bg-[#9f224e] text-white rounded-xl font-black shadow-[0_0_15px_rgba(159,34,78,0.5)] hover:bg-[#b92b5b] transform active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
+                  {isSubmittingDoc ? 'SAVING...' : 'CREATE DOCUMENT'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
