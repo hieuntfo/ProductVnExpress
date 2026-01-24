@@ -836,12 +836,12 @@ const App: React.FC = () => {
               </div>
            </div>
            
-           <div className="mt-16 text-center text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em] space-y-3 opacity-70">
+           <div className="mt-16 text-center text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] space-y-3 opacity-90">
               <p>© 2026 VnExpress ProductHub System</p>
               <p className="normal-case tracking-normal">nguyenhieu@vnexpress.net | 0902423384</p>
               <div className="flex items-center justify-center gap-4">
                  <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Signal Active</span>
-                 <span className="w-[1px] h-3 bg-slate-800"></span>
+                 <span className="w-[1px] h-3 bg-slate-700"></span>
                  <span>Enterprise Level Protection</span>
               </div>
            </div>

@@ -81,10 +81,14 @@ const DocumentDetail: React.FC<DocumentDetailProps> = ({ document, onClose, onUp
             {isEditing ? (
               <div className="border border-slate-300 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-vne-primary overflow-hidden h-full flex flex-col">
                 <div className="p-2 border-b border-slate-200 dark:border-slate-700 flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                  <button type="button" title="Bold" onClick={() => document.execCommand('bold')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors">B</button>
-                  <button type="button" title="Italic" onClick={() => document.execCommand('italic')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 italic text-slate-700 dark:text-slate-200 transition-colors">I</button>
-                  <button type="button" title="Underline" onClick={() => document.execCommand('underline')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 underline text-slate-700 dark:text-slate-200 transition-colors">U</button>
-                  <button type="button" title="Insert Link" onClick={() => { const url = prompt('Enter URL:'); if (url) document.execCommand('createLink', false, url); }} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">
+                  {/* FIX: Use window.document to avoid conflict with 'document' prop */}
+                  <button type="button" title="Bold" onClick={() => window.document.execCommand('bold')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors">B</button>
+                  {/* FIX: Use window.document to avoid conflict with 'document' prop */}
+                  <button type="button" title="Italic" onClick={() => window.document.execCommand('italic')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 italic text-slate-700 dark:text-slate-200 transition-colors">I</button>
+                  {/* FIX: Use window.document to avoid conflict with 'document' prop */}
+                  <button type="button" title="Underline" onClick={() => window.document.execCommand('underline')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 underline text-slate-700 dark:text-slate-200 transition-colors">U</button>
+                  {/* FIX: Use window.document to avoid conflict with 'document' prop */}
+                  <button type="button" title="Insert Link" onClick={() => { const url = prompt('Enter URL:'); if (url) window.document.execCommand('createLink', false, url); }} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">
                     <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                   </button>
                 </div>
