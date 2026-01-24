@@ -120,11 +120,11 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, isAdmin }) => {
   return (
     <div className="space-y-8 animate-scale-in">
       {isAdmin && (
-        <div className="bg-gradient-to-br from-[#111827] to-[#0b1121] p-8 rounded-3xl border border-slate-700/50 shadow-2xl relative overflow-hidden">
-          <div className="absolute -inset-px bg-[radial-gradient(circle_at_top_right,rgba(159,34,78,0.15)_0%,transparent_40%)]"></div>
+        <div className="bg-gradient-to-b from-slate-900 via-[#111827] to-[#0b1121] p-8 rounded-3xl border border-slate-700/50 shadow-2xl relative overflow-hidden">
+          <div className="absolute -inset-px bg-[radial-gradient(circle_at_top_right,rgba(159,34,78,0.15)_0%,transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.1)_0%,transparent_50%)]"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">System Analytics</h3>
+              <h3 className="text-sm font-black uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">System Analytics</h3>
               <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700">
                 {(['today', 'yesterday', 'week', 'month'] as TimeFrame[]).map(tf => (
                   <button key={tf} onClick={() => setTimeFrame(tf)} className={`px-4 py-1.5 text-[10px] font-bold rounded-md transition-all capitalize ${timeFrame === tf ? 'bg-[#9f224e] text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>{tf}</button>
@@ -132,8 +132,8 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, isAdmin }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
-              <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-700/50 flex items-center gap-5">
-                <div className="p-3 bg-[#9f224e]/20 text-[#db2777] rounded-xl border border-[#9f224e]/50">
+              <div className="bg-gradient-to-br from-slate-800/50 via-slate-800/10 to-transparent p-6 rounded-2xl border border-slate-700/50 flex items-center gap-5 group transition-all duration-300 hover:border-vne-primary/50 hover:bg-slate-800/30">
+                <div className="p-3 bg-vne-primary/10 text-vne-secondary rounded-xl border border-vne-primary/30 group-hover:bg-vne-primary/20 transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
                 <div>
@@ -141,9 +141,9 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, isAdmin }) => {
                   <p className="text-3xl font-black text-white">{analyticsStats.users}</p>
                 </div>
               </div>
-              <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-700/50 flex items-center gap-5">
-                <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/30">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              <div className="bg-gradient-to-br from-slate-800/50 via-slate-800/10 to-transparent p-6 rounded-2xl border border-slate-700/50 flex items-center gap-5 group transition-all duration-300 hover:border-sky-500/50 hover:bg-slate-800/30">
+                <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/30 group-hover:bg-sky-500/20 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pageviews</p>
