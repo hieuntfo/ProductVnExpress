@@ -105,12 +105,12 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects, members, onSelectMember
   };
 
   const InfoRow = ({ label, value, href }: { label: string; value: string; href?: string }) => (
-    <div className="flex items-center py-3 border-b border-slate-200 dark:border-slate-800">
-      <span className="w-1/3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+    <div className="flex items-center py-4 border-b border-slate-200 dark:border-slate-800">
+      <span className="w-1/3 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{label}</span>
       {href ? (
-        <a href={href} className="flex-1 font-bold text-vne-accent hover:brightness-125">{value}</a>
+        <a href={href} className="flex-1 font-bold text-vne-primary hover:text-vne-secondary transition-colors underline-offset-4 hover:underline">{value}</a>
       ) : (
-        <span className="flex-1 font-bold text-slate-700 dark:text-slate-200">{value || 'N/A'}</span>
+        <span className="flex-1 font-bold text-slate-800 dark:text-slate-200">{value || 'N/A'}</span>
       )}
     </div>
   );
@@ -135,72 +135,95 @@ const MemberHub: React.FC<MemberHubProps> = ({ projects, members, onSelectMember
       </div>
       
       {selectedMember && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => onSelectMember(null)}>
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl w-full max-w-4xl h-[90vh] max-h-[700px] rounded-3xl overflow-hidden shadow-2xl animate-scale-in flex glow-border" onClick={e => e.stopPropagation()}>
-            <div className="w-1/3 bg-slate-100/50 dark:bg-slate-800/30 p-8 flex flex-col items-center justify-center text-center border-r border-slate-300/50 dark:border-slate-800/50">
-              <img src={selectedMember.avatar} alt={selectedMember.fullName} className="w-32 h-32 rounded-full shadow-2xl mb-6 border-4 border-white dark:border-slate-900/80" />
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{selectedMember.fullName}</h2>
-              <p className="font-bold text-vne-primary uppercase text-xs tracking-widest mt-2 drop-shadow-[0_0_5px_var(--vne-glow)]">{selectedMember.position}</p>
-              <div className="flex gap-4 mt-8">
-                <div className="text-center">
-                  <p className="text-3xl font-black text-emerald-500">{selectedMember.active}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active</p>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => onSelectMember(null)}>
+          <div className="bg-white dark:bg-slate-950 w-full max-w-5xl h-[85vh] max-h-[750px] rounded-[2.5rem] overflow-hidden shadow-[0_25px_70px_-15px_rgba(0,0,0,0.5)] animate-scale-in flex glow-border border-white/10" onClick={e => e.stopPropagation()}>
+            {/* Left Profile Sidebar */}
+            <div className="w-1/3 bg-slate-50 dark:bg-slate-900/50 p-10 flex flex-col items-center justify-center text-center border-r border-slate-200 dark:border-slate-800">
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-vne-primary/20 blur-2xl rounded-full animate-pulse"></div>
+                <img src={selectedMember.avatar} alt={selectedMember.fullName} className="relative w-40 h-40 rounded-full shadow-2xl border-4 border-white dark:border-slate-800 object-cover" />
+                <div className="absolute -bottom-2 right-4 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-lg"></div>
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">{selectedMember.fullName}</h2>
+              <p className="font-black text-vne-primary uppercase text-[11px] tracking-[0.3em] mt-3 bg-vne-primary/5 px-4 py-1.5 rounded-full border border-vne-primary/20">{selectedMember.position}</p>
+              
+              <div className="grid grid-cols-2 gap-8 mt-12 w-full px-4">
+                <div className="text-center bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                  <p className="text-3xl font-black text-emerald-500 dark:text-emerald-400">{selectedMember.active}</p>
+                  <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Active Now</p>
                 </div>
-                <div className="border-l border-slate-200 dark:border-slate-700"></div>
-                <div className="text-center">
-                  <p className="text-3xl font-black text-slate-700 dark:text-slate-300">{selectedMember.total}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total</p>
+                <div className="text-center bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                  <p className="text-3xl font-black text-slate-800 dark:text-slate-300">{selectedMember.total}</p>
+                  <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Assignments</p>
                 </div>
               </div>
             </div>
 
-            <div className="w-2/3 flex flex-col">
-              <div className="p-6 border-b border-slate-300/50 dark:border-slate-800/50 flex items-center justify-between shrink-0">
+            {/* Right Detailed Content */}
+            <div className="w-2/3 flex flex-col bg-white dark:bg-slate-950">
+              <div className="p-8 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-black text-vne-primary uppercase tracking-widest bg-vne-primary/10 px-3 py-1 rounded-full border border-vne-primary/20">
-                    Member Profile
+                  <span className="text-[10px] font-black text-vne-primary uppercase tracking-[0.3em] bg-vne-primary/5 px-4 py-2 rounded-xl border border-vne-primary/10">
+                    Personnel dossier
                   </span>
                 </div>
-                <button onClick={() => onSelectMember(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-400 hover:text-slate-900 dark:hover:text-white">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <button onClick={() => onSelectMember(null)} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8 space-y-8">
+              <div className="flex-1 overflow-y-auto p-10 space-y-12">
                 <div>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Member Details</h3>
-                  <div className="text-sm">
-                    <InfoRow label="Email" value={selectedMember.email} href={`mailto:${selectedMember.email}`} />
-                    <InfoRow label="Phone" value={selectedMember.phone} href={`tel:${selectedMember.phone.replace(/[^0-9+]/g, '')}`} />
-                    <InfoRow label="Start Date" value={selectedMember.startDate} />
-                    <InfoRow label="Date of Birth" value={selectedMember.dob} />
+                  <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                    <span className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800"></span> Contact Information
+                  </h3>
+                  <div className="space-y-1">
+                    <InfoRow label="Direct Mail" value={selectedMember.email} href={`mailto:${selectedMember.email}`} />
+                    <InfoRow label="Mobile Line" value={selectedMember.phone} href={`tel:${selectedMember.phone.replace(/[^0-9+]/g, '')}`} />
+                    <InfoRow label="Onboarded" value={selectedMember.startDate} />
+                    <InfoRow label="Birthday" value={selectedMember.dob} />
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Involved Projects</h3>
+                  <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                    <span className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800"></span> Associated Projects
+                  </h3>
                   {involvedProjects.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 gap-4">
                       {involvedProjects.map(p => (
-                        <div key={p.id} className="bg-slate-100/50 dark:bg-slate-800/50 p-3 rounded-xl flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50">
+                        <div key={p.id} className="bg-slate-50/50 dark:bg-slate-900/30 p-5 rounded-3xl flex items-center justify-between transition-all hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 group/item">
                           <div className="flex flex-col">
-                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight">{p.description}</p>
-                            <p className="text-xs text-slate-500 font-medium mt-0.5">{p.department} - Q{p.quarter}</p>
+                            <p className="text-base font-black text-slate-800 dark:text-slate-100 group-hover/item:text-vne-primary transition-colors">{p.description}</p>
+                            <div className="flex items-center gap-3 mt-1.5">
+                               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{p.department}</span>
+                               <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                               <span className="text-[10px] font-black text-vne-accent">QUARTER {p.quarter}</span>
+                            </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${p.status === ProjectStatus.DONE ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 'bg-blue-100 text-blue-600 border-blue-200'} dark:bg-opacity-30 dark:border-opacity-30`}>{p.status}</span>
+                          <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                            p.status === ProjectStatus.DONE 
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-500/30' 
+                            : 'bg-vne-primary/5 text-vne-primary border-vne-primary/20 dark:bg-vne-primary/10 dark:text-vne-secondary dark:border-vne-primary/30'
+                          }`}>
+                            {p.status}
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-center text-slate-400 text-sm font-medium italic border-2 border-dashed border-slate-300/80 dark:border-slate-700/50 rounded-2xl p-8">
-                      No projects assigned yet.
+                    <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-50/50 dark:bg-slate-900/20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2rem]">
+                      <svg className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                      <p className="text-sm font-bold text-slate-400 dark:text-slate-600 italic">No mission data available for this member</p>
                     </div>
                   )}
                 </div>
               </div>
               
-              <div className="p-6 border-t border-slate-300/50 dark:border-slate-800/50 flex justify-end bg-slate-100/30 dark:bg-slate-800/20 shrink-0">
-                <button onClick={() => onSelectMember(null)} className="px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl transition-colors border border-slate-300 dark:border-slate-600">Close</button>
+              <div className="p-8 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50/30 dark:bg-slate-900/20 shrink-0">
+                <button onClick={() => onSelectMember(null)} className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-black rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-xl uppercase tracking-widest text-[11px] border border-transparent">
+                  Exit dossier
+                </button>
               </div>
             </div>
           </div>
