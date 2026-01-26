@@ -776,59 +776,64 @@ const App: React.FC = () => {
         className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-800 dark:text-slate-200 relative transition-colors duration-700 overflow-hidden bg-[#010409]"
       >
         <LoginKeyVisual />
-        <div className="relative z-10 w-full max-w-lg">
+        <div className="relative z-10 w-full max-w-md">
            <div
              className="relative group transition-all duration-300"
            >
               <div className="absolute -inset-[1px] bg-gradient-to-tr from-white/10 via-transparent to-[#9f224e]/50 rounded-[2.5rem] blur-[0.5px]"></div>
               
-              <div className="relative bg-[#020617]/90 backdrop-blur-sm border border-white/5 rounded-[2.5rem] p-12 md:p-16 shadow-[0_40px_100px_-20px_rgba(0,0,0,1)] overflow-hidden">
+              <div className="relative bg-[#020617]/95 backdrop-blur-sm border border-white/5 rounded-[2.5rem] p-10 md:p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,1)] overflow-hidden">
                   
                   <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#9f224e] to-transparent opacity-100"></div>
 
-                  <div className="text-center mb-12">
-                      <div className="inline-block relative mb-8">
-                          <div className="w-20 h-20 bg-[#9f224e] rounded-3xl flex items-center justify-center font-black text-6xl text-white shadow-[0_15px_40px_rgba(159,34,78,0.5)]">P</div>
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-[#020617]"></div>
+                  <div className="text-center mb-10">
+                      <div className="inline-block relative mb-6">
+                          <div className="w-16 h-16 bg-[#9f224e] rounded-2xl flex items-center justify-center font-black text-5xl text-white shadow-[0_15px_40px_rgba(159,34,78,0.5)]">P</div>
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-4 border-[#020617]"></div>
                       </div>
-                      <h1 className="text-4xl font-black text-white tracking-tight uppercase leading-none">VnExpress</h1>
+                      <h1 className="text-3xl font-black text-white tracking-tight uppercase leading-none">VnExpress</h1>
                       <div className="flex flex-col items-center mt-3">
-                         <span className="text-[#9f224e] font-black text-[11px] uppercase tracking-[0.4em] mb-1 animate-typing">Product Management</span>
-                         <div className="h-0.5 w-16 bg-slate-800 rounded-full"></div>
+                         <span className="text-[#9f224e] font-black text-[10px] uppercase tracking-[0.4em] mb-1 animate-typing">Product Management</span>
+                         <div className="h-0.5 w-12 bg-slate-800 rounded-full"></div>
                       </div>
                   </div>
 
-                  <form onSubmit={handleLogin} className="space-y-10">
+                  <form onSubmit={handleLogin} className="space-y-8">
                     <div className="bg-white/5 p-1 rounded-2xl flex border border-white/10 relative overflow-hidden shadow-inner">
-                      <button type="button" onClick={() => { setLoginTab('user'); setPasswordInput(''); setLoginError(''); }} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${loginTab === 'user' ? 'bg-[#9f224e] text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>Member</button>
-                      <button type="button" onClick={() => { setLoginTab('admin'); setPasswordInput(''); setLoginError(''); }} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${loginTab === 'admin' ? 'bg-[#9f224e] text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>Admin</button>
+                      <button type="button" onClick={() => { setLoginTab('user'); setPasswordInput(''); setLoginError(''); }} className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${loginTab === 'user' ? 'bg-[#9f224e] text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>Member</button>
+                      <button type="button" onClick={() => { setLoginTab('admin'); setPasswordInput(''); setLoginError(''); }} className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${loginTab === 'admin' ? 'bg-[#9f224e] text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>Admin</button>
                     </div>
 
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Establish Access Link</label>
-                         <div className="relative">
+                    <div className="space-y-5">
+                      <div className="space-y-2.5">
+                         <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Establish Access Link</label>
+                         <div className="relative group/input overflow-hidden rounded-2xl border border-white/10 focus-within:ring-2 focus-within:ring-[#9f224e] transition-all bg-black/60 shadow-inner">
                            <input 
                               type={isPasswordVisible ? 'text' : 'password'} 
                               value={passwordInput} 
                               onChange={(e) => setPasswordInput(e.target.value)} 
-                              className={`w-full pl-8 pr-16 py-6 bg-black/60 border border-white/10 rounded-2xl text-white font-bold text-2xl focus:ring-2 focus:ring-[#9f224e] focus:border-transparent focus:outline-none transition-all shadow-inner placeholder:tracking-normal placeholder:opacity-20 ${isPasswordVisible ? 'tracking-normal' : 'tracking-[0.5em]'}`} 
+                              className={`w-full pl-6 pr-14 py-5 bg-transparent text-white font-bold text-xl focus:outline-none transition-all placeholder:tracking-normal placeholder:opacity-20 ${isPasswordVisible ? 'tracking-normal' : 'tracking-[0.5em]'}`} 
                               placeholder="••••••" 
                               autoFocus
                            />
-                           <button type="button" onClick={() => setIsPasswordVisible(!isPasswordVisible)} className="absolute inset-y-0 right-0 flex items-center pr-6 text-slate-500 hover:text-white transition-colors z-20" aria-label={isPasswordVisible ? "Hide password" : "Show password"}>
+                           <button 
+                              type="button" 
+                              onClick={() => setIsPasswordVisible(!isPasswordVisible)} 
+                              className="absolute right-0 top-0 h-full w-14 flex items-center justify-center text-slate-500 hover:text-white transition-all z-20 group-hover/input:bg-white/5" 
+                              aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                           >
                               {isPasswordVisible ? (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-2.923 3.397-5.21 6.542-6.175M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.582 17.582A4.5 4.5 0 0112 16.5a4.5 4.5 0 01-5.582-1.082M1.175 1.175L.322 2.028m21.356 21.356l-.853-.853M21.972 21.972L2.028 2.028" /></svg>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-2.923 3.397-5.21 6.542-6.175M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.582 17.582A4.5 4.5 0 0112 16.5a4.5 4.5 0 01-5.582-1.082M1.175 1.175L.322 2.028m21.356 21.356l-.853-.853M21.972 21.972L2.028 2.028" /></svg>
                               ) : (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                               )}
                            </button>
                          </div>
                       </div>
-                      {loginError && <p className="text-red-400 text-xs text-center font-bold bg-red-400/10 py-4 rounded-xl border border-red-400/20">{loginError}</p>}
+                      {loginError && <p className="text-red-400 text-[11px] text-center font-bold bg-red-400/10 py-3 rounded-xl border border-red-400/20">{loginError}</p>}
                     </div>
                     
-                    <button type="submit" className="w-full py-6 bg-gradient-to-br from-[#9f224e] to-[#db2777] text-white font-black rounded-2xl shadow-[0_20px_40px_-10px_rgba(159,34,78,0.6)] hover:shadow-[0_25px_50px_-5px_rgba(159,34,78,0.8)] hover:brightness-110 active:scale-[0.98] transition-all duration-300 uppercase tracking-[0.3em] text-xs flex items-center justify-center gap-3 border border-white/10">
+                    <button type="submit" className="w-full py-5 bg-gradient-to-br from-[#9f224e] to-[#db2777] text-white font-black rounded-2xl shadow-[0_15px_30px_-10px_rgba(159,34,78,0.6)] hover:shadow-[0_20px_40px_-5px_rgba(159,34,78,0.8)] hover:brightness-110 active:scale-[0.98] transition-all duration-300 uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-3 border border-white/10">
                       Link Connection
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </button>
@@ -836,11 +841,11 @@ const App: React.FC = () => {
               </div>
            </div>
            
-           <div className="mt-16 text-center text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] space-y-3 opacity-90">
+           <div className="mt-14 text-center text-slate-200 text-[10px] font-bold uppercase tracking-[0.3em] space-y-2.5 opacity-100 shadow-sm">
               <p>© 2026 VnExpress ProductHub System</p>
-              <p className="normal-case tracking-normal">nguyenhieu@vnexpress.net | 0902423384</p>
-              <div className="flex items-center justify-center gap-4">
-                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Signal Active</span>
+              <p className="normal-case tracking-normal text-slate-300 font-semibold">nguyenhieu@vnexpress.net | 0902423384</p>
+              <div className="flex items-center justify-center gap-4 mt-4">
+                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span> Signal Active</span>
                  <span className="w-[1px] h-3 bg-slate-700"></span>
                  <span>Enterprise Level Protection</span>
               </div>
@@ -1203,12 +1208,12 @@ const App: React.FC = () => {
                 <label htmlFor="doc_desc" className="block text-xs font-black text-slate-400 uppercase mb-2">Description / Content</label>
                 <div className="mt-1 border border-slate-200 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-vne-primary overflow-hidden">
                   <div className="p-2 border-b border-slate-200 dark:border-slate-700 flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50">
-                    <button type="button" title="Bold" onClick={() => document.execCommand('bold')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors">B</button>
-                    <button type="button" title="Italic" onClick={() => document.execCommand('italic')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 italic text-slate-700 dark:text-slate-200 transition-colors">I</button>
-                    <button type="button" title="Underline" onClick={() => document.execCommand('underline')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 underline text-slate-700 dark:text-slate-200 transition-colors">U</button>
+                    <button type="button" title="Bold" onClick={() => window.document.execCommand('bold')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors">B</button>
+                    <button type="button" title="Italic" onClick={() => window.document.execCommand('italic')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 italic text-slate-700 dark:text-slate-200 transition-colors">I</button>
+                    <button type="button" title="Underline" onClick={() => window.document.execCommand('underline')} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 underline text-slate-700 dark:text-slate-200 transition-colors">U</button>
                     <button type="button" title="Insert Link" onClick={() => {
                         const url = prompt('Enter the URL:');
-                        if (url) document.execCommand('createLink', false, url);
+                        if (url) window.document.execCommand('createLink', false, url);
                     }} className="w-8 h-8 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">
                       <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                     </button>
