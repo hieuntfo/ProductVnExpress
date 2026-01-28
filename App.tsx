@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { DEPARTMENTS, MOCK_PROJECTS, GOOGLE_SCRIPT_URL, MEMBERS_DATA_URL, DOCUMENTS_DATA_URL } from './constants';
 import { Project, ProjectStatus, ProjectType, ProjectPriority, Member, MemberWithStats, Document } from './types';
@@ -524,6 +525,7 @@ const App: React.FC = () => {
              if (c.includes('stt') || c === 'no' || c === '#') colMap['code'] = idx;
              if (c.includes('loại') || c.includes('type')) colMap['type'] = idx;
              if (c.includes('issue') || c.includes('description') || c === 'mô tả' || c === 'tên dự án' || c === 'project name' || c.includes('summary')) colMap['description'] = idx;
+             if (c.includes('project year')) colMap['projectYear'] = idx;
              if (c.includes('giai đoạn') || c.includes('phase')) colMap['phase'] = idx;
              if (c.includes('bộ phận') || c.includes('dept') || c.includes('folder')) colMap['department'] = idx;
              if (c.includes('yêu cầu') || c.includes('owner') || c.includes('request') || c.includes('người yêu cầu')) colMap['po'] = idx;
@@ -559,11 +561,15 @@ const App: React.FC = () => {
           const techHandoff = getVal('techHandoff');
           const quarterStr = getVal('quarter');
           const statusValue = getVal('status');
+          const projectYearStr = getVal('projectYear');
           
           let year: number;
           const descLower = description.toLowerCase();
           
-          if (descLower.includes('2024')) {
+          const projectYearNum = parseInt(projectYearStr, 10);
+          if (projectYearNum === 2024 || projectYearNum === 2025 || projectYearNum === 2026) {
+              year = projectYearNum;
+          } else if (descLower.includes('2024')) {
               year = 2024;
           } else if (descLower.includes('2025')) {
               year = 2025;
